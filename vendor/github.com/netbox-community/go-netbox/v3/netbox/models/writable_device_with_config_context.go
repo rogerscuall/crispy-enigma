@@ -72,6 +72,10 @@ type WritableDeviceWithConfigContext struct {
 	// Required: true
 	DeviceRole *int64 `json:"device_role"`
 
+	// Role
+	// Required: true
+	Role *int64 `json:"role"`
+
 	// Device type
 	// Required: true
 	DeviceType *int64 `json:"device_type"`
