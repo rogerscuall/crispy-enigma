@@ -23,10 +23,14 @@ package cmd
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 
+	"github.com/go-resty/resty/v2"
 	n "github.com/netbox-community/go-netbox/v3/netbox"
+	mo "github.com/rogerscuall/crispy-enigma/models"
 	"github.com/rogerscuall/crispy-enigma/netbox"
+	"github.com/rogerscuall/crispy-enigma/pkg"
 	"github.com/spf13/cobra"
 )
 
@@ -36,6 +40,7 @@ var (
 	netboxPassword string
 	netboxToken    string
 	netboxURL      string
+	app            *pkg.Application
 )
 
 // netboxUpdateCmd represents the netboxUpdate command
@@ -50,36 +55,28 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("netboxUpdate called")
-		nb := n.NewNetboxWithAPIKey(netboxURL, netboxToken)
-		netbox.Work(nb)
-		// role := int64(1)
-		// name := "test-device-rgo"
-		// deviceType := int64(8)
-		// site := int64(1)
-		// device := &models.WritableDeviceWithConfigContext{
-		// 	Name:       &name,
-		// 	Role:       &role,
-		// 	DeviceType: &deviceType,
-		// 	DeviceRole: &role,
-		// 	Site:       &site,
-		// 	Tags:       []*models.NestedTag{},
-		// }
-		// create, err := nb.Dcim.DcimDevicesCreate(&dcim.DcimDevicesCreateParams{
-		// 	Context: context.Background(),
-		// 	Data:    device,
-		// }, nil)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// fmt.Printf("%#v\n", create)
+
+		url, err := url.Parse(netboxURL)
+		cobra.CheckErr(err)
+		token, err := createToken(netboxUsername, netboxPassword, url)
+		cobra.CheckErr(err)
+		app.NetBoxclient = n.NewNetboxWithAPIKey(url.Host, token)
+		c, err := mo.NewConfigFromYaml("old/DC1-LEAF1A.yml")
+		if err != nil {
+			cobra.CheckErr(err)
+		}
+		app.AddDevice(c)
+		netbox.Work(app)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(netboxUpdateCmd)
-
 	netboxURL = os.Getenv("NETBOX_URL")
 	netboxToken = os.Getenv("NETBOX_TOKEN")
+	netboxUsername = os.Getenv("NETBOX_USERNAME")
+	netboxPassword = os.Getenv("NETBOX_PASSWORD")
+	app = pkg.NewApplication()
 
 	// Here you will define your flags and configuration settings.
 
@@ -92,26 +89,26 @@ func init() {
 	// netboxUpdateCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-// func createToken(usr, pwd string, url *url.URL) (string, error) {
-// 	client := resty.New()
-// 	client.SetBaseURL("https://" + url.Host)
+func createToken(usr, pwd string, url *url.URL) (string, error) {
+	client := resty.New()
+	client.SetBaseURL("https://" + url.Host)
 
-// 	body := fmt.Sprintf(`{"username":"%s", "password":"%s"}`, usr, pwd)
+	body := fmt.Sprintf(`{"username":"%s", "password":"%s"}`, usr, pwd)
 
-// 	result := make(map[string]interface{})
-// 	_, err := client.R().
-// 		SetResult(&result).
-// 		SetHeader("Content-Type", "application/json").
-// 		SetBody(body).
-// 		Post("/api/users/tokens/provision/")
+	result := make(map[string]interface{})
+	_, err := client.R().
+		SetResult(&result).
+		SetHeader("Content-Type", "application/json").
+		SetBody(body).
+		Post("/api/users/tokens/provision/")
 
-// 	if err != nil {
-// 		return "", fmt.Errorf("error requesting a token: %w", err)
-// 	}
+	if err != nil {
+		return "", fmt.Errorf("error requesting a token: %w", err)
+	}
 
-// 	if val, ok := result["key"]; ok {
-// 		return val.(string), nil
-// 	}
+	if val, ok := result["key"]; ok {
+		return val.(string), nil
+	}
 
-// 	return "", fmt.Errorf("empty token")
-// }
+	return "", fmt.Errorf("empty token")
+}

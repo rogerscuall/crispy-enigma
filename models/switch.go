@@ -6,7 +6,6 @@ import (
 	yaml "gopkg.in/yaml.v2"
 )
 
-
 func NewConfigFromYaml(yamlFile string) (*Config, error) {
 	config := &Config{}
 	f, err := os.Open(yamlFile)
@@ -19,6 +18,11 @@ func NewConfigFromYaml(yamlFile string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	config.DeviceRole = "Switch"
+	config.DeviceType = "Switch"
+	config.Manufacturer = "Arista"
+	config.Site = "DC1"
+	config.Model = "cEOS"
 	return config, nil
 }
 
@@ -41,7 +45,7 @@ type Config struct {
 	// LocalUsers                   []LocalUser            `yaml:"local_users"`
 	// ManagementInterfaces         []ManagementInterface  `yaml:"management_interfaces"`
 	// ManagementApiHttp            ManagementApiHttp      `yaml:"management_api_http"`
-	VlanInterfaces               []VlanInterface        `yaml:"vlan_interfaces"`
+	VlanInterfaces []VlanInterface `yaml:"vlan_interfaces"`
 	// PortChannelInterfaces        []PortChannelInterface `yaml:"port_channel_interfaces"`
 	// EthernetInterfaces           []EthernetInterface    `yaml:"ethernet_interfaces"`
 	// MlagConfiguration            MlagConfiguration      `yaml:"mlag_configuration"`
@@ -54,6 +58,11 @@ type Config struct {
 	// VxlanInterface               VxlanInterface         `yaml:"vxlan_interface"`
 	// VirtualSourceNatVrfs         []VirtualSourceNatVrf  `yaml:"virtual_source_nat_vrfs"`
 	// Ntp                          Ntp                    `yaml:"ntp"`
+	Manufacturer string `yaml:"manufacturer,omitempty"`
+	DeviceType   string `yaml:"device_type,omitempty"`
+	DeviceRole   string `yaml:"device_role,omitempty"`
+	Site         string `yaml:"site,omitempty"`
+	Model		string `yaml:"model,omitempty"`
 }
 
 // Define other structs like Metadata, RouterBgp, AddressFamilyIpv4, etc., here.
