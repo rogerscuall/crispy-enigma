@@ -23,6 +23,11 @@ confirm:
 run/infoblox/update:
 	go run *.go infobloxUpdate -f old
 
+## run/netbox/update: run the cmd/api application
+.PHONY: run/netbox/update
+run/netbox/update:
+	go run *.go netboxUpdate -f old1
+
 ## db/migrations/new name=<VALUE>ssh-rsa 
 .PHONY: db/migrations/new
 db/migrations/new:
@@ -84,7 +89,7 @@ release:
 	goreleaser release --clean
 
 ## release/init: initialize goreleaser
-.PHONY: release
-release:
+.PHONY: release/init
+release/init:
 	@echo 'Initializing the goreleases...'
 	goreleaser init
