@@ -90,6 +90,6 @@ release:
 
 ## release/init: initialize goreleaser
 .PHONY: release/init
-release:
+release/init:
 	@echo 'Initializing the goreleases...'
 	goreleaser init
