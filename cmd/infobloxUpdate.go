@@ -26,8 +26,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"path/filepath"
-	"strings"
 
 	ibclient "github.com/infobloxopen/infoblox-go-client/v2"
 	"github.com/rogerscuall/crispy-enigma/models"
@@ -151,26 +149,4 @@ func createConnector() (*ibclient.Connector, error) {
 		return nil, err
 	}
 	return conn, nil
-}
-
-// getYmlFiles returns a slice of all the .yml files in the given path
-func getYmlFiles(path string) ([]string, error) {
-	var files []string
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() && strings.HasSuffix(path, ".yml") {
-			files = append(files, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return files, nil
-}
-
-func isDataConflictError(err error) bool {
-	return strings.Contains(err.Error(), "IB.Data.Conflict")
 }

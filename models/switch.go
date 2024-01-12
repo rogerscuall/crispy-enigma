@@ -21,7 +21,7 @@ func NewConfigFromYaml(yamlFile string) (*Config, error) {
 	config.DeviceRole = "Switch"
 	config.DeviceType = "Switch"
 	config.Manufacturer = "Arista"
-	config.Site = "DC1"
+	config.Site = "DCX1"
 	config.Model = "cEOS"
 	return config, nil
 }

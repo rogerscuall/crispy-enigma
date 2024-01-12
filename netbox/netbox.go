@@ -265,7 +265,9 @@ func getDeviceIDs(nb *client.NetBoxAPI, in models.Device) (fnd bool, out *models
 	return fnd, out, nil
 }
 
+
 func createResources(app *pkg.Application) error {
+	//TODO: Create all these resources at once, for example create all the Manufactures once and check locally if they exist.
 	// working with the manufacturer
 	var manInput Manufacturers
 	for _, device := range app.Devices {
@@ -349,35 +351,37 @@ func createResources(app *pkg.Application) error {
 		}
 	}
 
-	// ////////////////////////////////
-	// // Sites
-	// ////////////////////////////////
-	// sit, err := os.Open("old/sites.json")
-	// if err != nil {
-	// 	return fmt.Errorf("cannot open sites file: %w", err)
-	// }
-	// defer dev.Close()
+	// working with the sites
 
-	// d = json.NewDecoder(sit)
+	var devSites Sites
 
-	// var devSites Sites
-	// err = d.Decode(&devSites.List)
-	// if err != nil {
-	// 	return fmt.Errorf("cannot decode sites data: %w", err)
-	// }
+	for _, device := range app.Devices {
+		slug := strings.ToLower(device.Site)
+		site := models.Site{
+			Display: device.Site,
+			Slug:    &slug,
+			Name:    &device.Site,
+		}
+		f := strfmt.NewFormats()
+		err := site.Validate(f)
+		if err != nil {
+			return fmt.Errorf("failed to validate values for site %s: %w", site.Display, err)
+		}
+		devSites.List = append(devSites.List, site)
+	}
 
-	// for _, devSite := range devSites.List {
-	// 	found, _, err := findSite(nb, *devSite.Slug)
-	// 	if err != nil {
-	// 		return fmt.Errorf("error finding site %s: %w", devSite.Display, err)
-	// 	}
-	// 	if !found {
-	// 		err = createSite(nb, devSite)
-	// 		if err != nil {
-	// 			return fmt.Errorf("error creating site %s: %w", devSite.Display, err)
-	// 		}
-	// 	}
-	// }
+	for _, devSite := range devSites.List {
+		found, _, err := findSite(app.NetBoxclient, *devSite.Slug)
+		if err != nil {
+			return fmt.Errorf("error finding site %s: %w", devSite.Display, err)
+		}
+		if !found {
+			err = createSite(app.NetBoxclient, devSite)
+			if err != nil {
+				return fmt.Errorf("error creating site %s: %w", devSite.Display, err)
+			}
+		}
+	}
 
 	return nil
 }
@@ -389,18 +393,50 @@ func Work(app *pkg.Application) {
 		panic(err)
 	}
 
-	////////////////////////////////
-	// Read new device parameters
-	////////////////////////////////
-	// dev, err := os.Open("old/device.json")
-	// check(err)
-	// defer dev.Close()
+	// working with the devices
 
-	// d := json.NewDecoder(dev)
+	var device models.Device
 
-	// var device models.Device
-	// err = d.Decode(&device)
-	// check(err)
+	for _, dev := range app.Devices {
+		device = models.Device{
+			Name:       &dev.Hostname,
+			DeviceRole: &models.NestedDeviceRole{
+				Slug: &dev.DeviceRole,
+
+			},
+			DeviceType: &models.NestedDeviceType{Slug: &dev.Model},
+			Site:       &models.NestedSite{Slug: &dev.Site},
+			Tags:       []*models.NestedTag{},
+		}
+
+		found, devWithIDs, err := getDeviceIDs(app.NetBoxclient, device)
+		check(err)
+
+		ctx := context.Background()
+		if found {
+			res, err := app.NetBoxclient.Dcim.DcimDevicesRead(&dcim.DcimDevicesReadParams{
+				ID:      devWithIDs.ID,
+				Context: ctx,
+			}, nil)
+			check(err)
+			fmt.Println("Device already present: ", *res.Payload.Name)
+			return
+		}
+
+		created, err := app.NetBoxclient.Dcim.DcimDevicesCreate(&dcim.DcimDevicesCreateParams{
+			Context: ctx,
+			Data:    devWithIDs,
+		}, nil)
+		check(err)
+
+		res, err := app.NetBoxclient.Dcim.DcimDevicesRead(&dcim.DcimDevicesReadParams{
+			ID:      created.Payload.ID,
+			Context: ctx,
+		}, nil)
+		check(err)
+
+		fmt.Println("Device created: ", *res.Payload.Name)
+	}
 
 	// found, devWithIDs, err := getDeviceIDs(nb, device)
 	// check(err)

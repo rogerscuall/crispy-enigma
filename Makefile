@@ -26,7 +26,7 @@ run/infoblox/update:
 ## run/netbox/update: run the cmd/api application
 .PHONY: run/netbox/update
 run/netbox/update:
-	go run *.go netboxUpdate 
+	go run *.go netboxUpdate -f old1
 
 ## db/migrations/new name=<VALUE>ssh-rsa 
 .PHONY: db/migrations/new

@@ -23,6 +23,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 
@@ -55,18 +56,28 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("netboxUpdate called")
+		folder := cmd.Flag("folder").Value.String()
+		log.Print("Folder:", folder)
 
 		url, err := url.Parse(netboxURL)
 		cobra.CheckErr(err)
 		token, err := createToken(netboxUsername, netboxPassword, url)
 		cobra.CheckErr(err)
 		app.NetBoxclient = n.NewNetboxWithAPIKey(url.Host, token)
-		c, err := mo.NewConfigFromYaml("old/DC1-LEAF1A.yml")
+		// Fetches all the .yml files in the given path
+		files, err := getYmlFiles(folder)
 		if err != nil {
-			cobra.CheckErr(err)
+			fmt.Println(err)
 		}
-		app.AddDevice(c)
-		netbox.Work(app)
+		for _, file := range files {
+			fmt.Println("Working on file:", file)
+			c, err := mo.NewConfigFromYaml(file)
+			if err != nil {
+				cobra.CheckErr(err)
+			}
+			app.AddDevice(c)
+			netbox.Work(app)
+		}
 	},
 }
 
@@ -77,6 +88,12 @@ func init() {
 	netboxUsername = os.Getenv("NETBOX_USERNAME")
 	netboxPassword = os.Getenv("NETBOX_PASSWORD")
 	app = pkg.NewApplication()
+
+	netboxUpdateCmd.Flags().StringP("folder", "f", "", "Path to the folder")
+	err := infoUpdateCmd.MarkFlagRequired("folder")
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
 
 	// Here you will define your flags and configuration settings.
 
