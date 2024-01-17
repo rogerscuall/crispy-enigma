@@ -35,14 +35,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	//netboxURL      string
-	netboxUsername string
-	netboxPassword string
-	netboxToken    string
-	netboxURL      string
-	app            *pkg.Application
-)
 
 // netboxUpdateCmd represents the netboxUpdate command
 var netboxUpdateCmd = &cobra.Command{

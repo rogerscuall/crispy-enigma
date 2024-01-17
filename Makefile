@@ -23,6 +23,11 @@ confirm:
 run/infoblox/update:
 	go run *.go infobloxUpdate -f old
 
+## run/infoblox/nextnetwork: run the infoblox next network process
+.PHONY: run/infoblox/nextnetwork
+run/infoblox/nextnetwork:
+	go run *.go infobloxNextNetwork -f old/NETWORK_SERVICES.yml
+
 ## run/netbox/update: run the cmd/api application
 .PHONY: run/netbox/update
 run/netbox/update:
