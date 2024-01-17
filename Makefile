@@ -91,7 +91,7 @@ build/cmd:
 .PHONY: release
 release:
 	@echo 'Creating release...'
-	goreleaser release --clean
+	goreleaser release --snapshot --clean
 
 ## release/init: initialize goreleaser
 .PHONY: release/init
