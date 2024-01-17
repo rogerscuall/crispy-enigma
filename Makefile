@@ -98,3 +98,15 @@ release:
 release/init:
 	@echo 'Initializing the goreleases...'
 	goreleaser init
+
+# ==================================================================================== #
+# CONTAINER
+# ==================================================================================== #
+
+
+## build/container: build the container image
+.PHONY: build/container
+build/container:
+	@echo 'Building container image...'
+	docker build -t registry.presidio.com/arista/arista-avd-cvaas/crispy-enigma .
+	docker push registry.presidio.com/arista/arista-avd-cvaas/crispy-enigma

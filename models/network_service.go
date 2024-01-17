@@ -47,10 +47,11 @@ func NewSVI(subnet string) *SVI {
 	first := prefix.Addr()
 	octects := strings.Split(subnet, ".")
 	id, _ := strconv.Atoi(octects[2])
+	name := "VLAN_" + octects[2]
 	return &SVI{
 		IpAddressVirtual: first.Next().String() + "/" + strconv.Itoa(prefix.Bits()),
 		Enabled:          true,
-		Name:             subnet,
+		Name:             name,
 		ID:               id,
 	}
 }

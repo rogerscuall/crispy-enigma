@@ -92,16 +92,12 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			cobra.CheckErr(err)
 		}
-		tmpFile, err := os.Create("tmp.yml")
+		tmpFile, err := os.Create("new_network_services.yml")
 		if err != nil {
 			cobra.CheckErr(err)
 		}
-		defer os.Remove(tmpFile.Name())
+		defer tmpFile.Close()
 		if _, err := tmpFile.Write(updatedYml); err != nil {
-			cobra.CheckErr(err)
-		}
-		tmpFile.Close()
-		if err := os.Rename(tmpFile.Name(), filePath); err != nil {
 			cobra.CheckErr(err)
 		}
 	},
