@@ -23,6 +23,11 @@ confirm:
 run/infoblox/update:
 	go run *.go infobloxUpdate -f old
 
+## run/infoblox/nextnetwork: run the infoblox next network process
+.PHONY: run/infoblox/nextnetwork
+run/infoblox/nextnetwork:
+	go run *.go infobloxNextNetwork -f old/NETWORK_SERVICES.yml
+
 ## run/netbox/update: run the cmd/api application
 .PHONY: run/netbox/update
 run/netbox/update:
@@ -86,10 +91,22 @@ build/cmd:
 .PHONY: release
 release:
 	@echo 'Creating release...'
-	goreleaser release --clean
+	goreleaser release --snapshot --clean
 
 ## release/init: initialize goreleaser
 .PHONY: release/init
 release/init:
 	@echo 'Initializing the goreleases...'
 	goreleaser init
+
+# ==================================================================================== #
+# CONTAINER
+# ==================================================================================== #
+
+
+## build/container: build the container image
+.PHONY: build/container
+build/container:
+	@echo 'Building container image...'
+	docker build -t registry.presidio.com/arista/arista-avd-cvaas/crispy-enigma .
+	docker push registry.presidio.com/arista/arista-avd-cvaas/crispy-enigma

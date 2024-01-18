@@ -25,11 +25,21 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rogerscuall/crispy-enigma/pkg"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
+
+var (
+	//netboxURL      string
+	netboxUsername string
+	netboxPassword string
+	netboxToken    string
+	netboxURL      string
+	app            *pkg.Application
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
