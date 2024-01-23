@@ -33,6 +33,11 @@ run/infoblox/nextnetwork:
 run/netbox/update:
 	go run *.go netboxUpdate -f old1
 
+## run/host/interface: run the cmd/api application
+.PHONY: run/host/interface
+run/host/interface:
+	go run *.go hostInterfaces -f old3
+
 ## db/migrations/new name=<VALUE>ssh-rsa 
 .PHONY: db/migrations/new
 db/migrations/new:
