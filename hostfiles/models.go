@@ -1,7 +1,10 @@
 package hostfiles
 
 import (
+	"fmt"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"gopkg.in/yaml.v2"
@@ -41,4 +44,43 @@ func WriteYamlFile(file string, interfaces []Interface) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// ParseInterfaceString parses the string and returns the interface name format, lower and higher bounds.
+// Currently only parses the format EthernetX-Y
+func ParseInterfaceString(s string) (string, int, int, error) {
+	// TODO: Parse the different options like Ethernet1/1
+	re := regexp.MustCompile(`([a-zA-Z\/]+)(\d+)-(\d+)`)
+	matches := re.FindStringSubmatch(s)
+
+	if len(matches) < 4 {
+		return "", 0, 0, fmt.Errorf("invalid format")
+	}
+
+	base := matches[1]
+	lower, err := strconv.Atoi(matches[2])
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("invalid lower bound")
+	}
+
+	higher, err := strconv.Atoi(matches[3])
+	if err != nil {
+		return "", 0, 0, fmt.Errorf("invalid higher bound")
+	}
+
+	return base, lower, higher, nil
+}
+
+// CreateDefaultInterfaces creates a default set of interfaces
+func CreateDefaultInterfaces(base string, lower, higher int) []Interface {
+	var interfaces []Interface
+	for lower <= higher {
+		interfaces = append(interfaces, Interface{
+			Name:        fmt.Sprintf("%s%d", base, lower),
+			Description: "unused",
+			Shutdown:    true,
+		})
+		lower++
+	}
+	return interfaces
 }

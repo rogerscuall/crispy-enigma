@@ -48,6 +48,16 @@ Both files will have the same name, but different extensions.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("hostInterfaces called")
 		folder := cmd.Flag("folder").Value.String()
+		interfaceRange := cmd.Flag("range").Value.String()
+		fmt.Println("Folder:", folder)
+		fmt.Println("Range:", interfaceRange)
+		base, lower, higher, err := hostfiles.ParseInterfaceString(interfaceRange)
+		if err != nil {
+			cobra.CheckErr(err)
+		}
+		fmt.Printf("Base: %v, Lower: %v, Higher: %v\n", base, lower, higher)
+		defaultInterfaces := hostfiles.CreateDefaultInterfaces(base, lower, higher)
+		fmt.Printf("Default interfaces: %v\n", defaultInterfaces)
 		files, err := getCsvFiles(folder)
 		if err != nil {
 			fmt.Println(err)
@@ -87,7 +97,24 @@ Both files will have the same name, but different extensions.`,
 			}
 			log.Println("Interfaces:", interfaces)
 			log.Println("File:", file)
-			hostfiles.WriteYamlFile(file, interfaces)
+			nonDefaultMap := make(map[string]hostfiles.Interface)
+			for _, item := range interfaces {
+				nonDefaultMap[item.Name] = item
+			}
+			for _, item := range defaultInterfaces {
+				if _, exists := nonDefaultMap[item.Name]; !exists {
+					nonDefaultMap[item.Name] = item
+				}
+			}
+			var finalInterfaces []hostfiles.Interface
+			for _, item := range nonDefaultMap {
+				finalInterfaces = append(finalInterfaces, item)
+			}
+			log.Println("Interfaces:", interfaces)
+			log.Println("File:", file)
+			log.Println("Default interfaces:", defaultInterfaces)
+			log.Println("Final interfaces:", finalInterfaces)
+			hostfiles.WriteYamlFile(file, finalInterfaces)
 
 		}
 	},
@@ -96,6 +123,7 @@ Both files will have the same name, but different extensions.`,
 func init() {
 	rootCmd.AddCommand(hostInterfacesCmd)
 	hostInterfacesCmd.Flags().StringP("folder", "f", "", "Path to the folder")
+	hostInterfacesCmd.Flags().StringP("range", "r", "Ethernet10-20", "Interfaces range")
 	err := hostInterfacesCmd.MarkFlagRequired("folder")
 	if err != nil {
 		log.Fatalf("Error: %v", err)
