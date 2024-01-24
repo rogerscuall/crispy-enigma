@@ -55,7 +55,7 @@ to quickly create a Cobra application.`,
 		cobra.CheckErr(err)
 		token, err := createToken(netboxUsername, netboxPassword, url)
 		cobra.CheckErr(err)
-		app.NetBoxclient = n.NewNetboxWithAPIKey(url.Host, token)
+		app.NetBoxclient = n.NewAPIClientFor(url.Host, token)
 		// Fetches all the .yml files in the given path
 		files, err := getYmlFiles(folder)
 		if err != nil {

@@ -102,7 +102,6 @@ $RECYCLE.BIN/
 old
 .envrc
 launch.json
-exp
-exp1
+exp*
 dist/
 old*

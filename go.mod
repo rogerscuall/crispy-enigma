@@ -6,7 +6,7 @@ require (
 	github.com/go-openapi/strfmt v0.21.2
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/infobloxopen/infoblox-go-client/v2 v2.5.0
-	github.com/netbox-community/go-netbox/v3 v3.4.5
+	github.com/netbox-community/go-netbox/v3 v3.7.1-alpha.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
 	gopkg.in/yaml.v2 v2.4.0
