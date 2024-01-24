@@ -12,15 +12,11 @@ type Application struct {
 	InfobloxClient *ibclient.Connector
 }
 
-// func NewApplication() *Application {
-// 	//WARNING: this is an extremely important command, do not remove.
-// 	// Configure the schema to be https.
-	
-
-// 	return &Application{
-// 		Devices: make([]*models.Config, 0),
-// 	}
-// }
+func NewApplication() *Application {
+	return &Application{
+		Devices: make([]*models.Config, 0),
+	}
+}
 
 func (a *Application) AddDevice(device *models.Config) {
 	if a.Devices == nil {
