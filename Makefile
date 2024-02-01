@@ -38,6 +38,11 @@ run/netbox/update:
 run/host/interface:
 	go run *.go hostInterfaces -f old3
 
+## run/cvp/config: run the cmd/api application
+.PHONY: run/cvp/config
+run/cvp/config:
+	go run *.go cvpConfig -f old4
+
 ## db/migrations/new name=<VALUE>ssh-rsa 
 .PHONY: db/migrations/new
 db/migrations/new:
