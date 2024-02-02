@@ -56,17 +56,18 @@ to quickly create a Cobra application.`,
 			log.Print("Debug mode enabled")
 			app.Debug = true
 		}
-		hosts := []string{"10-255-97-237.act.arista.com"}
+		hosts := []string{cvpURL}
 		cvpClient, _ := client.NewCvpClient(
 			client.Protocol("https"),
 			client.Port(443),
 			client.Hosts(hosts...),
 			client.Debug(false))
 
-		if err := cvpClient.Connect("cvpadmin", "cvp123!"); err != nil {
+		if err := cvpClient.Connect(cvpUsername, cvpPassword); err != nil {
 			log.Fatalf("ERROR: %s", err)
 		}
 
+		app.CVPClient = cvpClient
 		// verify we have at least one device in inventory
 		data, err := cvpClient.API.GetCvpInfo()
 		if err != nil {
@@ -127,6 +128,9 @@ to quickly create a Cobra application.`,
 
 func init() {
 	rootCmd.AddCommand(cvpConfigCmd)
+	cvpURL = os.Getenv("CVP_URL")
+	cvpUsername = os.Getenv("CVP_USERNAME")
+	cvpPassword = os.Getenv("CVP_PASSWORD")
 	app = pkg.NewApplication()
 	cvpConfigCmd.Flags().StringP("folder", "f", "", "Folder where the structured config YAML files are located")
 	err := cvpConfigCmd.MarkFlagRequired("folder")

@@ -6,12 +6,14 @@ import (
 	ibclient "github.com/infobloxopen/infoblox-go-client/v2"
 	n "github.com/netbox-community/go-netbox/v3"
 	"github.com/rogerscuall/crispy-enigma/models"
+	"gopkg.in/aristanetworks/go-cvprac.v2/client"
 )
 
 type Application struct {
 	Devices        []*models.Config
 	NetBoxclient   *n.APIClient
 	InfobloxClient *ibclient.Connector
+	CVPClient      *client.CvpClient
 	Debug          bool
 }
 
