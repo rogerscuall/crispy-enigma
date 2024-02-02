@@ -42,13 +42,11 @@ var cvaasURL = "https://www.arista.io/cvpservice"
 // cvpConfigCmd represents the cvpConfig command
 var cvpConfigCmd = &cobra.Command{
 	Use:   "cvpConfig",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Download running-config from CVP and compares with intended config",
+	Long: `For every device in the folder will check for the configlets in CVP
+if found it will compare with the intended config and show the differences. Useful
+to check at the pipeline level if a the build will update CVP. If token is set, it will
+take precedence over username and password. If CVP_URL is not set, it will use CVAAS.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("cvpConfig called")
 		folder := cmd.Flag("folder").Value.String()
