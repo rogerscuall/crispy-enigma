@@ -37,13 +37,9 @@ import (
 // infobloxNextNetworkCmd represents the infobloxNextNetwork command
 var infobloxNextNetworkCmd = &cobra.Command{
 	Use:   "infobloxNextNetwork",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Gather the next available network from Infoblox",
+	Long: `Reserve the next available network from Infoblox and update the NETWORK_SERVICES.yml 
+file with the new network on AVD to update the network services`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("infobloxNextNetwork called")
 		filePath := cmd.Flag("file").Value.String()
