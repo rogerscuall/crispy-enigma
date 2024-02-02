@@ -103,6 +103,7 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			log.Printf("Error creating running-config directory: %v", err)
 		}
+		totalDiff := make(map[string]string)
 		for _, file := range files {
 			app.DebugLog("File Name: %v\n", file)
 			deviceName := strings.TrimSuffix(path.Base(file), ".cfg")
@@ -146,8 +147,9 @@ to quickly create a Cobra application.`,
 				edits := myers.ComputeEdits(span.URIFromPath(file), configlet.Config, string(newConfig))
 				diff := fmt.Sprint(gotextdiff.ToUnified("running-config", "intended-config", configlet.Config, edits))
 				if diff != "" {
-					fmt.Println("Device Config Diff:", deviceName)
-					fmt.Print(diff)
+					totalDiff[deviceName] = diff
+				} else {
+					fmt.Printf("Device %v config is in sync\n", deviceName)
 				}
 				// create a file with the running config
 				fileName := fmt.Sprintf("running-config/%v.cfg", deviceName)
@@ -156,7 +158,13 @@ to quickly create a Cobra application.`,
 					log.Printf("Error writing file: %v\n", err)
 				}
 			}
-
+		}
+		if len(totalDiff) == 0 {
+			fmt.Println("All devices are in sync")
+		}
+		for name, diff := range totalDiff {
+			fmt.Println("Device Config Diff:", name)
+			fmt.Print(diff)
 		}
 	},
 }
