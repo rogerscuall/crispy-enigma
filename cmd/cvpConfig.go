@@ -99,6 +99,10 @@ to quickly create a Cobra application.`,
 		if err != nil {
 			fmt.Println(err)
 		}
+		err = os.Mkdir("running-config", 0755)
+		if err != nil {
+			log.Printf("Error creating running-config directory: %v", err)
+		}
 		for _, file := range files {
 			app.DebugLog("File Name: %v\n", file)
 			deviceName := strings.TrimSuffix(path.Base(file), ".cfg")
@@ -144,6 +148,12 @@ to quickly create a Cobra application.`,
 				if diff != "" {
 					fmt.Println("Device Config Diff:", deviceName)
 					fmt.Print(diff)
+				}
+				// create a file with the running config
+				fileName := fmt.Sprintf("running-config/%v.cfg", deviceName)
+				err = os.WriteFile(fileName, newConfig, 0644)
+				if err != nil {
+					log.Printf("Error writing file: %v\n", err)
 				}
 			}
 

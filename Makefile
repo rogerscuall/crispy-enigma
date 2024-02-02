@@ -43,6 +43,11 @@ run/host/interface:
 run/cvp/config:
 	go run *.go cvpConfig -f old4
 
+## run/cvp/config/debug: run the cmd/api application
+.PHONY: run/cvp/config/debug
+run/cvp/config/debug:
+	go run *.go cvpConfig -f old4 -v
+
 ## db/migrations/new name=<VALUE>ssh-rsa 
 .PHONY: db/migrations/new
 db/migrations/new:
