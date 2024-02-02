@@ -24,9 +24,9 @@ When the build playbook of AVD runs creates a folder called `intended\structure_
    1. `export NETBOX_USERNAME=<user>`
    1. `export NETBOX_PASSWORD=<password>`
    1. `export NETBOX_URL=<url>` -> `export NETBOX_URL=https://demo.netbox.dev`
+   1. `export CVP_URL=<url>` -> if not defined uses `https://www.arista.io`
+   1. `export CVP_USERNAME=<user>`
+   1. `export CVP_PASSWORD=<password>`
 1. Update Infoblox: `crispy-enigma infobloxUpdate -f intended/structure_configs/`
 1. Update Netbox: `crispy-enigma netboxUpdate -f intended/structure_configs/`
-
-## Known issues
-
-- Currently there is a problem in the netbox client API [issue](https://github.com/netbox-community/go-netbox/issues/164) so is recommended to build using the vendor folder provided in the repo.
+1. Download and compare configs with CVP: `crispy-enigma cvpConfig -f intended/configs/`
