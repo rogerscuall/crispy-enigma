@@ -68,7 +68,8 @@ to quickly create a Cobra application.`,
 			cvpClient.Client.HostURL = cvaasURL
 		} else {
 			app.DebugLog("Using CVP_URL: %v", cvpURL)
-			cvpClient.Hosts = []string{cvpURL}
+			hosts := []string{cvpURL}
+			cvpClient.SetHosts(hosts...)
 		}
 		// if token is set, use token authentication and ignore username and password
 		if cvpToken != "" {
