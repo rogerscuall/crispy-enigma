@@ -37,6 +37,8 @@ import (
 	"gopkg.in/aristanetworks/go-cvprac.v2/client"
 )
 
+var cvaasURL = "https://www.arista.io/cvpservice"
+
 // cvpConfigCmd represents the cvpConfig command
 var cvpConfigCmd = &cobra.Command{
 	Use:   "cvpConfig",
@@ -56,17 +58,29 @@ to quickly create a Cobra application.`,
 			log.Print("Debug mode enabled")
 			app.Debug = true
 		}
-		hosts := []string{cvpURL}
 		cvpClient, _ := client.NewCvpClient(
 			client.Protocol("https"),
 			client.Port(443),
-			client.Hosts(hosts...),
-			client.Debug(false))
-
-		if err := cvpClient.Connect(cvpUsername, cvpPassword); err != nil {
-			log.Fatalf("ERROR: %s", err)
+			client.Debug(debug))
+		// use CVAAS if CVP_URL is not set
+		if cvpURL == "" {
+			app.DebugLog("CVP_URL not set, using %v", cvaasURL)
+			cvpClient.Client.HostURL = cvaasURL
+		} else {
+			app.DebugLog("Using CVP_URL: %v", cvpURL)
+			cvpClient.Hosts = []string{cvpURL}
 		}
+		// if token is set, use token authentication and ignore username and password
+		if cvpToken != "" {
+			app.DebugLog("Using Token authentication")
+			cvpClient.Client.SetAuthToken(cvpToken)
 
+		} else {
+			app.DebugLog("Using Username and Password authentication")
+			if err := cvpClient.Connect(cvpUsername, cvpPassword); err != nil {
+				log.Fatalf("ERROR: %s", err)
+			}
+		}
 		app.CVPClient = cvpClient
 		// verify we have at least one device in inventory
 		data, err := cvpClient.API.GetCvpInfo()
@@ -74,6 +88,12 @@ to quickly create a Cobra application.`,
 			log.Fatalf("ERROR: %s", err)
 		}
 		app.DebugLog("Data: %v\n", data)
+		// testing authentication by getting cvp info
+		info, err := app.CVPClient.API.GetCvpInfo()
+		if err != nil {
+			log.Fatalf("ERROR: %s", err)
+		}
+		app.DebugLog("CVP Info: %v\n", info)
 		files, err := getConfigFiles(folder)
 		if err != nil {
 			fmt.Println(err)
@@ -85,6 +105,10 @@ to quickly create a Cobra application.`,
 			if err != nil {
 				log.Printf("Device %v not found in CVP", deviceName)
 				log.Printf("ERROR: %s", err)
+				continue
+			}
+			if dev == nil {
+				log.Printf("Device %v not found in CVP", deviceName)
 				continue
 			}
 			app.DebugLog("Device Hostname: %v\n", dev.Hostname)
@@ -131,6 +155,7 @@ func init() {
 	cvpURL = os.Getenv("CVP_URL")
 	cvpUsername = os.Getenv("CVP_USERNAME")
 	cvpPassword = os.Getenv("CVP_PASSWORD")
+	cvpToken = os.Getenv("CVP_TOKEN")
 	app = pkg.NewApplication()
 	cvpConfigCmd.Flags().StringP("folder", "f", "", "Folder where the structured config YAML files are located")
 	err := cvpConfigCmd.MarkFlagRequired("folder")
@@ -138,13 +163,4 @@ func init() {
 		log.Fatalf("Error: %v", err)
 	}
 	cvpConfigCmd.Flags().BoolP("debug", "v", false, "Debug")
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// cvpConfigCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// cvpConfigCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
