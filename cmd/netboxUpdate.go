@@ -28,7 +28,7 @@ import (
 	"os"
 
 	"github.com/go-resty/resty/v2"
-	n "github.com/netbox-community/go-netbox/v3/netbox"
+	n "github.com/netbox-community/go-netbox/v3"
 	mo "github.com/rogerscuall/crispy-enigma/models"
 	"github.com/rogerscuall/crispy-enigma/netbox"
 	"github.com/rogerscuall/crispy-enigma/pkg"
@@ -55,7 +55,9 @@ to quickly create a Cobra application.`,
 		cobra.CheckErr(err)
 		token, err := createToken(netboxUsername, netboxPassword, url)
 		cobra.CheckErr(err)
-		app.NetBoxclient = n.NewNetboxWithAPIKey(url.Host, token)
+		app.NetBoxclient = n.NewAPIClientFor(url.Host, token)
+		c := app.NetBoxclient.GetConfig()
+		c.Scheme = "https"
 		// Fetches all the .yml files in the given path
 		files, err := getYmlFiles(folder)
 		if err != nil {

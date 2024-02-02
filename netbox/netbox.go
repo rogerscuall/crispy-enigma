@@ -3,212 +3,117 @@ package netbox
 import (
 	"context"
 	"fmt"
-	"net/url"
+	"log"
 	"strings"
 
-	"github.com/go-openapi/strfmt"
-	"github.com/go-resty/resty/v2"
-	"github.com/netbox-community/go-netbox/v3/netbox/client"
-	"github.com/netbox-community/go-netbox/v3/netbox/client/dcim"
-	"github.com/netbox-community/go-netbox/v3/netbox/models"
+	n "github.com/netbox-community/go-netbox/v3"
 	"github.com/rogerscuall/crispy-enigma/pkg"
 )
 
 var status = "active"
-var pageLimit = int64(100)
+var pageLimit = int32(100)
 
 type Manufacturers struct {
-	List []models.Manufacturer
+	List []*n.ManufacturerRequest
 }
 
-func createManufacturer(nb *client.NetBoxAPI, vnd models.Manufacturer) error {
-	_, err := nb.Dcim.DcimManufacturersCreate(&dcim.DcimManufacturersCreateParams{
-		Context: context.TODO(),
-		Data:    &vnd,
-	}, nil)
+func createManufacturer(nb *n.APIClient, manu n.ManufacturerRequest) error {
+	_, _, err := nb.DcimAPI.DcimManufacturersCreate(context.Background()).ManufacturerRequest(manu).Execute()
 	if err != nil {
-		return fmt.Errorf("failed to create manufacturer %s: %w", vnd.Display, err)
+		if !strings.Contains(err.Error(), "no value given for required property devicetype_count") {
+			return fmt.Errorf("failed to create manufacturer %s: %w", manu.Name, err)
+		}
 	}
-	//fmt.Println("Last Updated: ", crd.Payload.LastUpdated)
+	fmt.Println("Manufacturer created: ", manu.Name)
 	return nil
 }
 
-func findManufacturer(nb *client.NetBoxAPI, slug string) (fnd bool, id int64, err error) {
-	reqM := dcim.NewDcimManufacturersListParams().WithLimit(&pageLimit).WithSlug(&slug)
-	rsp, err := nb.Dcim.DcimManufacturersList(reqM, nil)
+func findManufacturer(nb *n.APIClient, slug string) (fnd bool, id int32, err error) {
+	reqM, _, err := nb.DcimAPI.DcimManufacturersList(context.Background()).Slug([]string{slug}).Limit(pageLimit).Execute()
 	if err != nil {
 		return fnd, id, fmt.Errorf("failed to find manufacturer %v: %w", &slug, err)
 	}
-	if len(rsp.Payload.Results) != 0 {
+	if len(reqM.Results) != 0 {
 		fnd = true
-		id = rsp.Payload.Results[0].ID
-		fmt.Printf("Vendor: %s \tID: %v \n",
-			*rsp.Payload.Results[0].Name, id)
+		id = reqM.Results[0].Id
+		fmt.Printf("Vendor: %s \tID: %v \n", reqM.Results[0].Name, id)
 	}
 	return fnd, id, nil
 }
 
-type DeviceTypes struct {
-	List []models.DeviceType
-}
-
-func createDeviceType(nb *client.NetBoxAPI, dt models.DeviceType) error {
-	man := models.Manufacturer{
-		Display: dt.Manufacturer.Display,
-		Name:    dt.Manufacturer.Name,
-		Slug:    dt.Manufacturer.Slug,
-	}
-
-	found, id, err := findManufacturer(nb, *man.Slug)
-	if err != nil || !found {
-		return fmt.Errorf("error finding manufacturer %s: %w", man.Display, err)
-	}
-
-	ndt := models.WritableDeviceType{
-		Manufacturer: &id,
-		Display:      dt.Display,
-		Model:        dt.Model,
-		Slug:         dt.Slug,
-		Tags:         []*models.NestedTag{},
-	}
-	f := strfmt.NewFormats()
-	err = ndt.Validate(f)
+func createDeviceType(nb *n.APIClient, dt *n.WritableDeviceTypeRequest) error {
+	apiRequest := nb.DcimAPI.DcimDeviceTypesCreate(context.Background()).WritableDeviceTypeRequest(*dt)
+	_, _, err := apiRequest.Execute()
 	if err != nil {
-		return fmt.Errorf("failed to validate values for type %s: %w", *dt.Model, err)
+		if !strings.Contains(err.Error(), "no value given for required property ") {
+			return fmt.Errorf("failed to create device type %s: %w", dt.Model, err)
+		}
 	}
-	//TODO: Is failing to create the device.
-	_, err = nb.Dcim.DcimDeviceTypesCreate(&dcim.DcimDeviceTypesCreateParams{
-		Context: context.TODO(),
-		Data:    &ndt,
-	}, nil)
-	if err != nil {
-		return fmt.Errorf("failed to create device type %s: %w", *dt.Model, err)
-	}
-	//fmt.Println("Last Updated: ", crd.Payload.LastUpdated)
+	fmt.Println("Device Type created: ", dt.Model)
 	return nil
 }
 
-func findDeviceType(nb *client.NetBoxAPI, slug string) (fnd bool, id int64, err error) {
-	rsp, err := nb.Dcim.DcimDeviceTypesList(&dcim.DcimDeviceTypesListParams{
-		Context: context.TODO(),
-		SlugIe:  &slug,
-	}, nil)
+func findDeviceType(nb *n.APIClient, slug string) (fnd bool, id int32, err error) {
+	reqDT, _, err := nb.DcimAPI.DcimDeviceTypesList(context.Background()).Slug([]string{slug}).Limit(pageLimit).Execute()
 	if err != nil {
 		return fnd, id, fmt.Errorf("failed to find device type %v: %w", &slug, err)
 	}
-	if len(rsp.Payload.Results) != 0 {
+	if len(reqDT.Results) != 0 {
 		fnd = true
-		id = rsp.Payload.Results[0].ID
-		fmt.Printf("Device Type: %q \tID: %v \n",
-			strings.TrimSpace(*rsp.Payload.Results[0].Model), id)
+		id = reqDT.Results[0].Id
+		fmt.Printf("Device Type: %s \tID: %v \n", reqDT.Results[0].Model, id)
 	}
 	return fnd, id, nil
 }
 
-type DeviceRoles struct {
-	List []models.DeviceRole
-}
-
-func createDeviceRole(nb *client.NetBoxAPI, dr models.DeviceRole) error {
-	f := strfmt.NewFormats()
-	err := dr.Validate(f)
+func createDeviceRole(nb *n.APIClient, dr n.WritableDeviceRoleRequest) error {
+	apiRequest := nb.DcimAPI.DcimDeviceRolesCreate(context.Background()).WritableDeviceRoleRequest(dr)
+	_, _, err := apiRequest.Execute()
 	if err != nil {
-		return fmt.Errorf("failed to validate values for type %s: %w", *dr.Name, err)
+		if !strings.Contains(err.Error(), "no value given for required property ") {
+			return fmt.Errorf("failed to create device role %s: %w", dr.Name, err)
+		}
 	}
-	_, err = nb.Dcim.DcimDeviceRolesCreate(&dcim.DcimDeviceRolesCreateParams{
-		Context: context.TODO(),
-		Data:    &dr,
-	}, nil)
-	if err != nil {
-		return fmt.Errorf("failed to create device role %s: %w", dr.Display, err)
-	}
-	//fmt.Println("Last Updated: ", crd.Payload.LastUpdated)
+	fmt.Println("Device Role created: ", dr.Name)
 	return nil
 }
 
-func findDeviceRole(nb *client.NetBoxAPI, slug string) (fnd bool, id int64, err error) {
-	rsp, err := nb.Dcim.DcimDeviceRolesList(&dcim.DcimDeviceRolesListParams{
-		Context: context.TODO(),
-		SlugIe:  &slug,
-	}, nil)
+func findDeviceRole(nb *n.APIClient, slug string) (fnd bool, id int32, err error) {
+	reqDr, _, err := nb.DcimAPI.DcimDeviceRolesList(context.Background()).Slug([]string{slug}).Limit(pageLimit).Execute()
 	if err != nil {
 		return fnd, id, fmt.Errorf("failed to find device role %v: %w", &slug, err)
 	}
-	if len(rsp.Payload.Results) != 0 {
+	if len(reqDr.Results) != 0 {
 		fnd = true
-		id = rsp.Payload.Results[0].ID
-		fmt.Printf("Site: %q \tID: %v \n",
-			strings.TrimSpace(rsp.Payload.Results[0].Display), id)
+		id = reqDr.Results[0].Id
+		fmt.Printf("Device Role: %s \tID: %v \n", reqDr.Results[0].Name, id)
 	}
 	return fnd, id, nil
 }
 
-type Sites struct {
-	List []models.Site
-}
-
-func createSite(nb *client.NetBoxAPI, s models.Site) error {
-	ns := models.WritableSite{
-		Name:    s.Name,
-		Display: s.Display,
-		Slug:    s.Slug,
-	}
-	f := strfmt.NewFormats()
-	err := ns.Validate(f)
+func createSite(nb *n.APIClient, s n.WritableSiteRequest) error {
+	apiRequest := nb.DcimAPI.DcimSitesCreate(context.Background()).WritableSiteRequest(s)
+	_, _, err := apiRequest.Execute()
 	if err != nil {
-		return fmt.Errorf("failed to validate values for site %s: %w", ns.Display, err)
+		if !strings.Contains(err.Error(), "no value given for required property ") {
+			return fmt.Errorf("failed to create site %s: %w", s.Name, err)
+		}
 	}
-
-	_, err = nb.Dcim.DcimSitesCreate(&dcim.DcimSitesCreateParams{
-		Context: context.TODO(),
-		Data:    &ns,
-	}, nil)
-	if err != nil {
-		return fmt.Errorf("failed to create site %s: %w", ns.Display, err)
-	}
-	//fmt.Println("Last Updated: ", crd.Payload.LastUpdated)
+	fmt.Println("Site created: ", s.Name)
 	return nil
 }
 
-func findSite(nb *client.NetBoxAPI, slug string) (fnd bool, id int64, err error) {
-	rsp, err := nb.Dcim.DcimSitesList(&dcim.DcimSitesListParams{
-		Context: context.TODO(),
-		SlugIe:  &slug,
-	}, nil)
+func findSite(nb *n.APIClient, slug string) (fnd bool, id int32, err error) {
+	reqSite, _, err := nb.DcimAPI.DcimSitesList(context.Background()).Slug([]string{slug}).Limit(pageLimit).Execute()
 	if err != nil {
 		return fnd, id, fmt.Errorf("failed to find site %v: %w", &slug, err)
 	}
-	if len(rsp.Payload.Results) != 0 {
+	if len(reqSite.Results) != 0 {
 		fnd = true
-		id = rsp.Payload.Results[0].ID
-		fmt.Printf("Device Role: %q \tID: %v \n",
-			strings.TrimSpace(rsp.Payload.Results[0].Display), id)
+		id = reqSite.Results[0].Id
+		fmt.Printf("Site: %s \tID: %v \n", reqSite.Results[0].Name, id)
 	}
 	return fnd, id, nil
-}
-
-func createToken(usr, pwd string, url *url.URL) (string, error) {
-	client := resty.New()
-	client.SetBaseURL("https://" + url.Host)
-
-	body := fmt.Sprintf(`{"username":"%s", "password":"%s"}`, usr, pwd)
-
-	result := make(map[string]interface{})
-	_, err := client.R().
-		SetResult(&result).
-		SetHeader("Content-Type", "application/json").
-		SetBody(body).
-		Post("/api/users/tokens/provision/")
-
-	if err != nil {
-		return "", fmt.Errorf("error requesting a token: %w", err)
-	}
-
-	if val, ok := result["key"]; ok {
-		return val.(string), nil
-	}
-
-	return "", fmt.Errorf("empty token")
 }
 
 func check(err error) {
@@ -217,169 +122,155 @@ func check(err error) {
 	}
 }
 
-func getDeviceIDs(nb *client.NetBoxAPI, in models.Device) (fnd bool, out *models.WritableDeviceWithConfigContext, err error) {
-	rsp, err := nb.Dcim.DcimDevicesList(&dcim.DcimDevicesListParams{
-		Context: context.TODO(),
-		NameIe:  in.Name,
-	}, nil)
+func findDevice(nb *n.APIClient, name string) (fnd bool, err error) {
+	rsp, _, err := nb.DcimAPI.DcimDevicesList(context.Background()).Name([]string{name}).Limit(pageLimit).Execute()
 	if err != nil {
-		return fnd, out, fmt.Errorf("failed to find device %s: %w", *in.Name, err)
+		return fnd, fmt.Errorf("failed to find device %s: %w", name, err)
 	}
-	var id int64
-	if len(rsp.Payload.Results) != 0 {
+	if len(rsp.Results) != 0 {
 		fnd = true
-		id = rsp.Payload.Results[0].ID
-		fmt.Printf("Device: %q \tID: %v \n",
-			strings.TrimSpace(*rsp.Payload.Results[0].Name), id)
-
-		out = &models.WritableDeviceWithConfigContext{
-			Name:       in.Name,
-			ID:         id,
-			DeviceRole: &rsp.Payload.Results[0].DeviceRole.ID,
-			DeviceType: &rsp.Payload.Results[0].DeviceType.ID,
-			Site:       &rsp.Payload.Results[0].Site.ID,
-			Tags:       rsp.Payload.Results[0].Tags,
-		}
-		return fnd, out, nil
+		fmt.Printf("Device: %q \tID: %v \n", name, rsp.Results[0].Id)
 	}
-	find, dr, err := findDeviceRole(nb, *in.DeviceRole.Slug)
-	if err != nil || !find {
-		return fnd, out, fmt.Errorf("failed to find device role id for %s: %w", *in.Name, err)
-	}
-	find, dt, err := findDeviceType(nb, *in.DeviceType.Slug)
-	if err != nil || !find {
-		return fnd, out, fmt.Errorf("failed to find device type id for %s: %w", *in.Name, err)
-	}
-	find, st, err := findSite(nb, *in.Site.Slug)
-	if err != nil || !find {
-		return fnd, out, fmt.Errorf("failed to find site id for %s: %w", *in.Name, err)
-	}
-	out = &models.WritableDeviceWithConfigContext{
-		Name:       in.Name,
-		Role:       &dr,
-		DeviceRole: &dr,
-		DeviceType: &dt,
-		Site:       &st,
-		Tags:       []*models.NestedTag{},
-	}
-	return fnd, out, nil
+	return fnd, nil
 }
 
+// func getDeviceIDs(nb *n.APIClient, in models.Device) (fnd bool, out *models.WritableDeviceWithConfigContext, err error) {
+// 	rsp, err := nb.Dcim.DcimDevicesList(&dcim.DcimDevicesListParams{
+// 		Context: context.TODO(),
+// 		NameIe:  in.Name,
+// 	}, nil)
+// 	if err != nil {
+// 		return fnd, out, fmt.Errorf("failed to find device %s: %w", *in.Name, err)
+// 	}
+// 	var id int64
+// 	if len(rsp.Payload.Results) != 0 {
+// 		fnd = true
+// 		id = rsp.Payload.Results[0].ID
+// 		fmt.Printf("Device: %q \tID: %v \n",
+// 			strings.TrimSpace(*rsp.Payload.Results[0].Name), id)
+
+// 		out = &models.WritableDeviceWithConfigContext{
+// 			Name:       in.Name,
+// 			ID:         id,
+// 			DeviceRole: &rsp.Payload.Results[0].DeviceRole.ID,
+// 			DeviceType: &rsp.Payload.Results[0].DeviceType.ID,
+// 			Site:       &rsp.Payload.Results[0].Site.ID,
+// 			Tags:       rsp.Payload.Results[0].Tags,
+// 		}
+// 		return fnd, out, nil
+// 	}
+// 	find, dr, err := findDeviceRole(nb, *in.DeviceRole.Slug)
+// 	if err != nil || !find {
+// 		return fnd, out, fmt.Errorf("failed to find device role id for %s: %w", *in.Name, err)
+// 	}
+// 	find, dt, err := findDeviceType(nb, *in.DeviceType.Slug)
+// 	if err != nil || !find {
+// 		return fnd, out, fmt.Errorf("failed to find device type id for %s: %w", *in.Name, err)
+// 	}
+// 	find, st, err := findSite(nb, *in.Site.Slug)
+// 	if err != nil || !find {
+// 		return fnd, out, fmt.Errorf("failed to find site id for %s: %w", *in.Name, err)
+// 	}
+// 	out = &models.WritableDeviceWithConfigContext{
+// 		Name:       in.Name,
+// 		Role:       &dr,
+// 		DeviceRole: &dr,
+// 		DeviceType: &dt,
+// 		Site:       &st,
+// 		Tags:       []*models.NestedTag{},
+// 	}
+// 	return fnd, out, nil
+// }
 
 func createResources(app *pkg.Application) error {
 	//TODO: Create all these resources at once, for example create all the Manufactures once and check locally if they exist.
 	// working with the manufacturer
-	var manInput Manufacturers
 	for _, device := range app.Devices {
 		slug := strings.ToLower(device.Manufacturer)
-		man := models.Manufacturer{
-			Display: device.Manufacturer,
-			Name:    &device.Manufacturer,
-			Slug:    &slug,
-		}
-		manInput.List = append(manInput.List, man)
-	}
-
-	for _, vendor := range manInput.List {
-		found, _, err := findManufacturer(app.NetBoxclient, *vendor.Slug)
+		found, manID, err := findManufacturer(app.NetBoxclient, slug)
 		if err != nil {
-			return fmt.Errorf("error finding manufacturer %s: %w", vendor.Display, err)
+			return fmt.Errorf("error finding manufacturer %s: %w", device.Manufacturer, err)
 		}
+
 		if !found {
-			err = createManufacturer(app.NetBoxclient, vendor)
+			man := n.NewManufacturerRequestWithDefaults()
+			man.Name = device.Manufacturer
+			man.Slug = slug
+			man.Tags = []n.NestedTagRequest{}
+			log.Println("Creating manufacturer: ", device.Manufacturer)
+			err = createManufacturer(app.NetBoxclient, *man)
 			if err != nil {
-				return fmt.Errorf("error creating manufacturer %s: %w", vendor.Display, err)
+				return fmt.Errorf("error creating manufacturer %s: %w", device.Manufacturer, err)
 			}
 		}
-	}
-
-	// working with the device type
-
-	var devTypes DeviceTypes
-	for _, device := range app.Devices {
-		slug := strings.ToLower(device.Model)
-		maSlug := strings.ToLower(device.Manufacturer)
-		dt := models.DeviceType{
-			Manufacturer: &models.NestedManufacturer{
-				Display: device.Manufacturer,
-				Slug:    &maSlug,
-				Name:    &device.Manufacturer,
-			},
-			Display: device.Model,
-			Model:   &device.Model,
-			Slug:    &slug,
-		}
-		devTypes.List = append(devTypes.List, dt)
-	}
-
-	for _, devType := range devTypes.List {
-		found, _, err := findDeviceType(app.NetBoxclient, *devType.Slug)
+		slugDeviceType := strings.ToLower(device.Model)
+		found, deviceTypeID, err := findDeviceType(app.NetBoxclient, slugDeviceType)
 		if err != nil {
-			return fmt.Errorf("error finding device type %s: %w", devType.Display, err)
+			return fmt.Errorf("error finding device type %s: %w", device.Manufacturer, err)
 		}
 		if !found {
-			err = createDeviceType(app.NetBoxclient, devType)
+			log.Println("Creating device type: ", device.Manufacturer)
+			deviceType := n.NewWritableDeviceTypeRequestWithDefaults()
+			deviceType.Model = device.Model
+			deviceType.Slug = slugDeviceType
+			deviceType.Manufacturer = manID
+			deviceType.Tags = []n.NestedTagRequest{}
+			err = createDeviceType(app.NetBoxclient, deviceType)
 			if err != nil {
-				return fmt.Errorf("error creating device type %s: %w", devType.Display, err)
+				return fmt.Errorf("error creating device type %s: %w", device.Manufacturer, err)
 			}
 		}
-	}
-
-	// working with the device role
-	var devRoles DeviceRoles
-	for _, device := range app.Devices {
-		slug := strings.ToLower(device.DeviceRole)
-		dr := models.DeviceRole{
-			Display: device.DeviceRole,
-			Slug:    &slug,
-			Name:    &device.DeviceRole,
-		}
-		devRoles.List = append(devRoles.List, dr)
-
-	}
-
-	for _, devRole := range devRoles.List {
-		found, _, err := findDeviceRole(app.NetBoxclient, *devRole.Slug)
+		slugRole := strings.ToLower(device.DeviceRole)
+		found, roleID, err := findDeviceRole(app.NetBoxclient, slugRole)
 		if err != nil {
-			return fmt.Errorf("error finding device role %s: %w", devRole.Display, err)
+			return fmt.Errorf("error finding device role %s: %w", device.Manufacturer, err)
 		}
 		if !found {
-			err = createDeviceRole(app.NetBoxclient, devRole)
+			log.Println("Creating device role: ", device.Manufacturer)
+			deviceRole := n.NewWritableDeviceRoleRequestWithDefaults()
+			deviceRole.Name = device.DeviceRole
+			deviceRole.Slug = slugRole
+			// deviceRole.Color = "ffffff"
+			deviceRole.Tags = []n.NestedTagRequest{}
+			err = createDeviceRole(app.NetBoxclient, *deviceRole)
 			if err != nil {
-				return fmt.Errorf("error creating device role %s: %w", devRole.Display, err)
+				return fmt.Errorf("error creating device role %s: %w", device.DeviceRole, err)
 			}
 		}
-	}
-
-	// working with the sites
-
-	var devSites Sites
-
-	for _, device := range app.Devices {
-		slug := strings.ToLower(device.Site)
-		site := models.Site{
-			Display: device.Site,
-			Slug:    &slug,
-			Name:    &device.Site,
-		}
-		f := strfmt.NewFormats()
-		err := site.Validate(f)
+		slugSite := strings.ToLower(device.Site)
+		found, siteID, err := findSite(app.NetBoxclient, slugSite)
 		if err != nil {
-			return fmt.Errorf("failed to validate values for site %s: %w", site.Display, err)
-		}
-		devSites.List = append(devSites.List, site)
-	}
-
-	for _, devSite := range devSites.List {
-		found, _, err := findSite(app.NetBoxclient, *devSite.Slug)
-		if err != nil {
-			return fmt.Errorf("error finding site %s: %w", devSite.Display, err)
+			return fmt.Errorf("error finding site %s: %w", device.Manufacturer, err)
 		}
 		if !found {
-			err = createSite(app.NetBoxclient, devSite)
+			log.Println("Creating site: ", device.Site)
+			site := n.NewWritableSiteRequestWithDefaults()
+			site.Name = device.Site
+			site.Slug = slugSite
+			site.Tags = []n.NestedTagRequest{}
+			err = createSite(app.NetBoxclient, *site)
 			if err != nil {
-				return fmt.Errorf("error creating site %s: %w", devSite.Display, err)
+				return fmt.Errorf("error creating site %s: %w", device.Manufacturer, err)
 			}
+		}
+		found, err = findDevice(app.NetBoxclient, device.Hostname)
+		if err != nil {
+			return fmt.Errorf("error finding device %s: %w", device.Manufacturer, err)
+		}
+		if !found {
+			createDevice := n.NewWritableDeviceWithConfigContextRequestWithDefaults()
+			createDevice.SetName(device.Hostname)
+			createDevice.SetName(device.Hostname)
+			createDevice.SetSite(siteID)
+			createDevice.SetRole(roleID)
+			createDevice.SetDeviceType(deviceTypeID)
+			apiRequest := app.NetBoxclient.DcimAPI.DcimDevicesCreate(context.Background()).WritableDeviceWithConfigContextRequest(*createDevice)
+			_, _, err = apiRequest.Execute()
+			if err != nil {
+				log.Println(err)
+				log.Println("Moving to the next device...")
+			}
+			fmt.Println("Device created: ", device.Hostname)
 		}
 	}
 
@@ -395,48 +286,36 @@ func Work(app *pkg.Application) {
 
 	// working with the devices
 
-	var device models.Device
+	//log.Printf("Device: %v", device)
 
-	for _, dev := range app.Devices {
-		device = models.Device{
-			Name:       &dev.Hostname,
-			DeviceRole: &models.NestedDeviceRole{
-				Slug: &dev.DeviceRole,
+	// found, devWithIDs, err := getDeviceIDs(app.NetBoxclient, device)
+	// check(err)
 
-			},
-			DeviceType: &models.NestedDeviceType{Slug: &dev.Model},
-			Site:       &models.NestedSite{Slug: &dev.Site},
-			Tags:       []*models.NestedTag{},
-		}
+	// ctx := context.Background()
+	// if found {
+	// 	res, err := app.NetBoxclient.Dcim.DcimDevicesRead(&dcim.DcimDevicesReadParams{
+	// 		ID:      devWithIDs.ID,
+	// 		Context: ctx,
+	// 	}, nil)
+	// 	check(err)
+	// 	fmt.Println("Device already present: ", *res.Payload.Name)
+	// 	return
+	// }
 
-		found, devWithIDs, err := getDeviceIDs(app.NetBoxclient, device)
-		check(err)
+	// created, err := app.NetBoxclient.Dcim.DcimDevicesCreate(&dcim.DcimDevicesCreateParams{
+	// 	Context: ctx,
+	// 	Data:    devWithIDs,
+	// }, nil)
+	// check(err)
 
-		ctx := context.Background()
-		if found {
-			res, err := app.NetBoxclient.Dcim.DcimDevicesRead(&dcim.DcimDevicesReadParams{
-				ID:      devWithIDs.ID,
-				Context: ctx,
-			}, nil)
-			check(err)
-			fmt.Println("Device already present: ", *res.Payload.Name)
-			return
-		}
+	// res, err := app.NetBoxclient.Dcim.DcimDevicesRead(&dcim.DcimDevicesReadParams{
+	// 	ID:      created.Payload.ID,
+	// 	Context: ctx,
+	// }, nil)
+	// check(err)
 
-		created, err := app.NetBoxclient.Dcim.DcimDevicesCreate(&dcim.DcimDevicesCreateParams{
-			Context: ctx,
-			Data:    devWithIDs,
-		}, nil)
-		check(err)
-
-		res, err := app.NetBoxclient.Dcim.DcimDevicesRead(&dcim.DcimDevicesReadParams{
-			ID:      created.Payload.ID,
-			Context: ctx,
-		}, nil)
-		check(err)
-
-		fmt.Println("Device created: ", *res.Payload.Name)
-	}
+	// fmt.Println("Device created: ", *res.Payload.Name)
+	//}
 
 	// found, devWithIDs, err := getDeviceIDs(nb, device)
 	// check(err)

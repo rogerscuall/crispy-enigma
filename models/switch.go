@@ -22,7 +22,7 @@ func NewConfigFromYaml(yamlFile string) (*Config, error) {
 	config.DeviceType = "Switch"
 	config.Manufacturer = "Arista"
 	config.Site = "DCX1"
-	config.Model = "cEOS"
+	config.Model = "cEOS123"
 	return config, nil
 }
 
