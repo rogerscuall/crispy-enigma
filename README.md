@@ -5,8 +5,8 @@ When the build playbook of AVD runs creates a folder called `intended\structure_
 
 ## Installation
 
-- Download the correct version of your OS from the [releases](https://github.com/rogerscuall/crispy-enigma/releases) page.
-- Build the binary(recommended):
+- (Recommended) Download the correct version of your OS from the [releases](https://github.com/rogerscuall/crispy-enigma/releases) page.
+- Build the binary:
   - Install [Go](https://golang.org/doc/install).
   - Download the repo: `git clone https://github.com/rogerscuall/crispy-enigma.git`.
   - Move to the repo: `cd crispy-enigma`.
