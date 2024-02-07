@@ -32,6 +32,6 @@ func (a *Application) AddDevice(device *models.Config) {
 
 func (a *Application) DebugLog(format string, v ...interface{}) {
 	if a.Debug {
-		fmt.Printf(format, v...)
+		fmt.Printf(format, v..., "\n")
 	}
 }
