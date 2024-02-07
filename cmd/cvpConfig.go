@@ -56,6 +56,10 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 			log.Print("Debug mode enabled")
 			app.Debug = true
 		}
+		files, err := getConfigFiles(folder)
+		if err != nil {
+			log.Fatalf("Error reading folder: %v", err)
+		}
 		cvpClient, _ := client.NewCvpClient(
 			client.Protocol("https"),
 			client.Port(443),
@@ -93,10 +97,6 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 			log.Fatalf("ERROR: %s", err)
 		}
 		app.DebugLog("CVP Info: %v\n", info)
-		files, err := getConfigFiles(folder)
-		if err != nil {
-			log.Fatalf("Error reading folder: %v", err)
-		}
 		err = os.Mkdir("running-config", 0755)
 		if err != nil {
 			log.Printf("Error creating running-config directory: %v", err)
