@@ -95,7 +95,7 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 		app.DebugLog("CVP Info: %v\n", info)
 		files, err := getConfigFiles(folder)
 		if err != nil {
-			fmt.Println(err)
+			cobra.CheckErr(err)
 		}
 		err = os.Mkdir("running-config", 0755)
 		if err != nil {
