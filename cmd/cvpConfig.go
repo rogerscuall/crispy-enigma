@@ -101,6 +101,7 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 		if err != nil {
 			log.Printf("Error creating running-config directory: %v", err)
 		}
+		var inSync = true
 		totalDiff := make(map[string]string)
 		for _, file := range files {
 			app.DebugLog("File Name: %v\n", file)
@@ -109,10 +110,12 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 			if err != nil {
 				log.Printf("Device %v not found in CVP", deviceName)
 				log.Printf("ERROR: %s", err)
+				inSync = false
 				continue
 			}
 			if dev == nil {
 				log.Printf("Device %v not found in CVP", deviceName)
+				inSync = false
 				continue
 			}
 			app.DebugLog("Device Hostname: %v\n", dev.Hostname)
@@ -122,17 +125,20 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 			if err != nil {
 				log.Printf("Configlets for device %v not found in CVP", deviceName)
 				log.Printf("ERROR: %s", err)
+				inSync = false
 			}
 
 			f, err := os.Open(file)
 			if err != nil {
 				log.Printf("Error: %v", err)
+				inSync = false
 				continue
 			}
 			defer f.Close()
 			newConfig, err := io.ReadAll(f)
 			if err != nil {
 				log.Printf("Error reading file: %v", err)
+				inSync = false
 				continue
 			}
 			app.DebugLog("Number of Configlets: %v\n", len(config))
@@ -140,6 +146,7 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 				app.DebugLog("Configlet Name: %v\n", configlet.Name)
 				if err != nil {
 					log.Printf("Error reading file: %v\n", err)
+					inSync = false
 					continue
 				}
 				edits := myers.ComputeEdits(span.URIFromPath(file), configlet.Config, string(newConfig))
@@ -157,7 +164,7 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 				}
 			}
 		}
-		if len(totalDiff) == 0 {
+		if len(totalDiff) == 0 && inSync {
 			fmt.Println("All devices are in sync")
 		}
 		for name, diff := range totalDiff {
