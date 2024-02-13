@@ -3,12 +3,14 @@ module github.com/rogerscuall/crispy-enigma
 go 1.21.6
 
 require (
+	github.com/duke-git/lancet/v2 v2.2.9
 	github.com/go-resty/resty/v2 v2.11.0
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/infobloxopen/infoblox-go-client/v2 v2.5.0
 	github.com/netbox-community/go-netbox/v3 v3.7.1-alpha.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
+	golang.org/x/sync v0.5.0
 	gopkg.in/aristanetworks/go-cvprac.v2 v2.7.0
 	gopkg.in/yaml.v2 v2.4.0
 )

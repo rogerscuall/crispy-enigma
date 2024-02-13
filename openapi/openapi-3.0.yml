@@ -1,0 +1,33 @@
+openapi: "3.0.2"
+info:
+  title: API Title
+  version: "1.0"
+servers:
+  - url: http://127.0.0.1:8090
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    tokenAuth:
+      type: http
+      scheme: bearer
+security:
+  - tokenAuth: []
+paths:
+  /api/collections/vlan/records:
+    get:
+      responses:
+        "200":
+          description: OK
+  /api/collections/vlan/records/{id}:
+    get:
+      responses:
+        "200":
+          description: OK
+      queryParameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
