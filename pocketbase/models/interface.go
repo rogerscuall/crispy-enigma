@@ -1,19 +1,16 @@
 package models
 
 type Interface struct {
-	ID             string `json:"id"`
-	CollectionID   string `json:"collectionId"`
-	CollectionName string `json:"collectionName"`
-	Created        string `json:"created"`
-	Updated        string `json:"updated"`
-	Name           string `json:"name"`
-	Description    string `json:"description"`
-	State          bool   `json:"state"`
-	VLANID         string `json:"vlan_id"`
+	Collection
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	State       bool   `json:"state"`
+	VLAN        string `json:"vlan"`
+	Switch      string `json:"switch"`
 }
 
-type InterfaceErrorResponse struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+type InterfaceList struct {
+	CollectionList
+	Items []Interface `json:"items"`
 }
+

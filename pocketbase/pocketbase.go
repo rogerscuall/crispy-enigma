@@ -202,7 +202,7 @@ func (c *Client) auth() error {
 		resp, err := c.client.R().
 			SetHeader("Content-Type", "application/json").
 			SetBody(map[string]interface{}{
-				"identity":    c.email,
+				"identity": c.email,
 				"password": c.password,
 			}).
 			SetResult(&authResponse{}).
