@@ -5,6 +5,7 @@ import (
 
 	ibclient "github.com/infobloxopen/infoblox-go-client/v2"
 	n "github.com/netbox-community/go-netbox/v3"
+	"github.com/rogerscuall/crispy-enigma/internal/pocketbase"
 	"github.com/rogerscuall/crispy-enigma/models"
 	"gopkg.in/aristanetworks/go-cvprac.v2/client"
 )
@@ -15,6 +16,7 @@ type Application struct {
 	InfobloxClient *ibclient.Connector
 	CVPClient      *client.CvpClient
 	Debug          bool
+	PbClient       *pocketbase.Client
 }
 
 func NewApplication() *Application {
@@ -32,6 +34,7 @@ func (a *Application) AddDevice(device *models.Config) {
 
 func (a *Application) DebugLog(format string, v ...interface{}) {
 	if a.Debug {
-		fmt.Printf(format, v..., "\n")
+		fmt.Printf(format, v...)
+		fmt.Println()
 	}
 }
