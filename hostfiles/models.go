@@ -12,8 +12,9 @@ import (
 
 type Interface struct {
 	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
+	Description string `yaml:"description,omitempty"`
 	Shutdown    bool   `yaml:"shutdown"`
+	VLAN        int `yaml:"vlan,omitempty"`
 }
 
 func NewInterfaces(initial, end int) []Interface {
@@ -30,6 +31,26 @@ func NewInterfaces(initial, end int) []Interface {
 func WriteYamlFile(file string, interfaces []Interface) {
 	// Create the file
 	f, err := os.Create(strings.Replace(file, ".csv", ".yml", 1))
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	// Write the interfaces to the file
+	var config struct {
+		CscEthernetInterfaces []Interface `yaml:"custom_structured_configuration_ethernet_interfaces"`
+	}
+	config.CscEthernetInterfaces = interfaces
+	err = yaml.NewEncoder(f).Encode(config)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// WriteHostFile writes the interfaces to a file
+func WriteHostFile(file string, interfaces []Interface) {
+	// Create the file
+	f, err := os.Create(file)
 	if err != nil {
 		panic(err)
 	}
