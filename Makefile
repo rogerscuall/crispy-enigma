@@ -48,17 +48,10 @@ run/cvp/config:
 run/cvp/config/debug:
 	go run *.go cvpConfig -f old4 -v
 
-## db/migrations/new name=<VALUE>ssh-rsa 
-.PHONY: db/migrations/new
-db/migrations/new:
-	@echo 'Creating migration files for ${name}...'
-	migrate create -seq -ext=.sql -dir=./migrations ${name}
-
-## db/migrations/up: apply all up database migrations
-.PHONY: db/migrations/up
-db/migrations/up: confirm
-	@echo 'Running up migrations...'
-	migrate -path ./migrations -database ${GREENLIGHT_DB_DSN} up
+## run/pbAccessInterface: run the Pocket Base CMD
+.PHONY: run/pbAccessInterface
+run/pbAccessInterface:
+	go run *.go pbAccessInterface -f old1 -v
 
 # ==================================================================================== #
 # QUALITY CONTROL
