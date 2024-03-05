@@ -106,3 +106,4 @@ exp*
 dist/
 old*
 running-config
+host_vars
