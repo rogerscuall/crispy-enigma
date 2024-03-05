@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/rogerscuall/crispy-enigma/pocketbase/models"
+	"github.com/rogerscuall/crispy-enigma/internal/pocketbase/models"
 )
 
 func (c *Client) GetInterfacesFromSwitchName(name string) ([]models.Interface, error) {
