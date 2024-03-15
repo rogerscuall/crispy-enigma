@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/rogerscuall/crispy-enigma/pocketbase"
-	"github.com/rogerscuall/crispy-enigma/pocketbase/models"
+	"github.com/rogerscuall/crispy-enigma/internal/pocketbase"
+	"github.com/rogerscuall/crispy-enigma/internal/pocketbase/models"
 	"github.com/tmc/langchaingo/tools"
 )
 
