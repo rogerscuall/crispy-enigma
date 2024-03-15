@@ -23,6 +23,7 @@ It will print to the console the number of occurrences and the file name and the
 The match will be case insensitive.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("parseOutput called")
+		var flag bool
 		count, err := cmd.Flags().GetUint("count")
 		if err != nil {
 			cobra.CheckErr(err)
@@ -68,12 +69,16 @@ The match will be case insensitive.`,
 		// Print the lines for keywords that meet the threshold
 		for keyword, times := range keywordCounts {
 			if times > int(count) {
+				flag = true
 				fmt.Printf("Keyword '%s' appears %d times, exceeding the threshold of %d. Matching lines:\n", keyword, times, count)
 				for _, line := range keywordLines[keyword] {
 					fmt.Println(line)
 				}
 				fmt.Println() // Add a blank line for readability
 			}
+		}
+		if flag {
+			cobra.CheckErr("One or more keywords exceeded the threshold")
 		}
 	},
 }
