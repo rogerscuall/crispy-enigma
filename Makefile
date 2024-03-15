@@ -112,5 +112,5 @@ release:
 .PHONY: build/container
 build/container:
 	@echo 'Building container image...'
-	docker build -t registry.presidio.com/arista/arista-avd-cvaas/crispy-enigma:${CE_TAG} .
-	docker push registry.presidio.com/arista/arista-avd-cvaas/crispy-enigma:${CE_TAG}
+	podman build -t registry.presidio.com/arista/arista-avd-cvaas/crispy-enigma:${CE_TAG} .
+	podman push registry.presidio.com/arista/arista-avd-cvaas/crispy-enigma:${CE_TAG}
