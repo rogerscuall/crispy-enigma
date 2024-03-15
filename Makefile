@@ -48,6 +48,12 @@ run/cvp/config:
 run/cvp/config/debug:
 	go run *.go cvpConfig -f old4 -v
 
+
+## run/parseOutput: run the cmd/api application
+.PHONY: run/parseOutput
+run/parseOutput:
+	go run *.go parseOutput -k warning,error -f old5/test.txt
+
 ## db/migrations/new name=<VALUE>ssh-rsa 
 .PHONY: db/migrations/new
 db/migrations/new:
@@ -87,16 +93,6 @@ vendor:
 	@echo 'Vendoring dependencies...'
 	go mod vendor
 
-# ==================================================================================== #
-# BUILD
-# ==================================================================================== #
-
-## build/cmd: build the cmd/api application
-.PHONY: build/cmd
-build/cmd:
-	@echo 'Building cmd/api...'
-	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/api ./cmd/api
-	go build -ldflags='-s' -o=./bin/mac_arm64/api ./cmd/api
 
 # ==================================================================================== #
 # RELEASE
@@ -108,16 +104,9 @@ release:
 	@echo 'Creating release...'
 	goreleaser release --snapshot --clean
 
-## release/init: initialize goreleaser
-.PHONY: release/init
-release/init:
-	@echo 'Initializing the goreleases...'
-	goreleaser init
-
 # ==================================================================================== #
 # CONTAINER
 # ==================================================================================== #
-
 
 ## build/container: build the container image
 .PHONY: build/container
