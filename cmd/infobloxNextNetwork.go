@@ -122,14 +122,4 @@ func init() {
 	}
 	infobloxNextNetworkCmd.Flags().UintP("mask", "m", 24, "Mask for the subnet for the new network")
 	infobloxNextNetworkCmd.Flags().UintP("number", "n", 1, "Number of subnets to add")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// infobloxNextNetworkCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// infobloxNextNetworkCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
