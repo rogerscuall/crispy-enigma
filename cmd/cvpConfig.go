@@ -186,5 +186,5 @@ func init() {
 	if err != nil {
 		log.Fatalf("Error: %v", err)
 	}
-	cvpConfigCmd.Flags().BoolP("debug", "v", false, "Debug")
+	//cvpConfigCmd.Flags().BoolP("debug", "v", false, "Debug")
 }
