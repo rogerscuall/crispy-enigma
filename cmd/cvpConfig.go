@@ -156,6 +156,16 @@ The following variables can be set as environment variables or in a .env file.
 			app.DebugLog("Number of Configlets: %v\n", len(config))
 			for _, configlet := range config {
 				app.DebugLog("Configlet Name: %v\n", configlet.Name)
+				// if the configlet name does not include the dev.Hostname, skip
+				if !strings.Contains(configlet.Name, dev.Hostname) {
+					app.DebugLog("Configlet %v does not include %v, skipping", configlet.Name, dev.Hostname)
+					continue
+				}
+				// log if the configlet does not include the string AVD
+				if !strings.Contains(configlet.Name, "AVD") {
+					app.DebugLog("Configlet %v does not include AVD, skipping", configlet.Name)
+					continue
+				}
 				if err != nil {
 					log.Printf("Error reading file: %v\n", err)
 					inSync = false
