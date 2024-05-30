@@ -37,7 +37,10 @@ import (
 	"gopkg.in/aristanetworks/go-cvprac.v2/client"
 )
 
-var cvaasURL = "https://www.arista.io/cvpservice"
+var (
+	cvaasURL   = "https://www.arista.io/cvpservice"
+	fqdnSuffix string
+)
 
 // cvpConfigCmd represents the cvpConfig command
 var cvpConfigCmd = &cobra.Command{
@@ -46,7 +49,14 @@ var cvpConfigCmd = &cobra.Command{
 	Long: `For every device in the folder will check for the configlets in CVP
 if found it will compare with the intended config and show the differences. Useful
 to check at the pipeline level if a the build will update CVP. If token is set, it will
-take precedence over username and password. If CVP_URL is not set, it will use CVAAS.`,
+take precedence over username and password. If CVP_URL is not set, it will use CVAAS.
+The following variables can be set as environment variables or in a .env file.
+- CVP_USERNAME: CVP Username
+- CVP_PASSWORD: CVP Password
+- CVP_TOKEN: CVP Token takes precedence over username and password
+- FQDN_SUFFIX: FQDN Suffix to append to the device name
+- CVP_URL: CVP URL if not set it will use CVAAS
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("cvpConfig called")
 		folder := cmd.Flag("folder").Value.String()
@@ -77,7 +87,6 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 		if cvpToken != "" {
 			app.DebugLog("Using Token authentication")
 			cvpClient.Client.SetAuthToken(cvpToken)
-
 		} else {
 			app.DebugLog("Using Username and Password authentication")
 			if err := cvpClient.Connect(cvpUsername, cvpPassword); err != nil {
@@ -106,6 +115,9 @@ take precedence over username and password. If CVP_URL is not set, it will use C
 		for _, file := range files {
 			app.DebugLog("File Name: %v\n", file)
 			deviceName := strings.TrimSuffix(path.Base(file), ".cfg")
+			if fqdnSuffix != "" {
+				deviceName = deviceName + "." + fqdnSuffix
+			}
 			dev, err := cvpClient.API.GetDeviceByName(deviceName)
 			if err != nil {
 				log.Printf("Device %v not found in CVP", deviceName)
@@ -180,6 +192,7 @@ func init() {
 	cvpUsername = os.Getenv("CVP_USERNAME")
 	cvpPassword = os.Getenv("CVP_PASSWORD")
 	cvpToken = os.Getenv("CVP_TOKEN")
+	fqdnSuffix = os.Getenv("FQDN_SUFFIX")
 	app = pkg.NewApplication()
 	cvpConfigCmd.Flags().StringP("folder", "f", "", "Folder where the structured config YAML files are located")
 	err := cvpConfigCmd.MarkFlagRequired("folder")
