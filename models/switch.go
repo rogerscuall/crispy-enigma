@@ -47,7 +47,7 @@ type Config struct {
 	// ManagementApiHttp            ManagementApiHttp      `yaml:"management_api_http"`
 	VlanInterfaces []VlanInterface `yaml:"vlan_interfaces"`
 	// PortChannelInterfaces        []PortChannelInterface `yaml:"port_channel_interfaces"`
-	// EthernetInterfaces           []EthernetInterface    `yaml:"ethernet_interfaces"`
+	EthernetInterfaces []EthernetInterface `yaml:"ethernet_interfaces"`
 	// MlagConfiguration            MlagConfiguration      `yaml:"mlag_configuration"`
 	// RouteMaps                    []RouteMap             `yaml:"route_maps"`
 	// LoopbackInterfaces           []LoopbackInterface    `yaml:"loopback_interfaces"`
@@ -62,7 +62,19 @@ type Config struct {
 	DeviceType   string `yaml:"device_type,omitempty"`
 	DeviceRole   string `yaml:"device_role,omitempty"`
 	Site         string `yaml:"site,omitempty"`
-	Model		string `yaml:"model,omitempty"`
+	Model        string `yaml:"model,omitempty"`
+}
+
+type EthernetInterface struct {
+	Name          string `yaml:"name"`
+	Peer          string `yaml:"peer"`
+	PeerInterface string `yaml:"peer_interface"`
+	PeerType      string `yaml:"peer_type"`
+	Description   string `yaml:"description"`
+	Shutdown      bool   `yaml:"shutdown"`
+	MTU           int    `yaml:"mtu"`
+	Type          string `yaml:"type"`
+	IPAddress     string `yaml:"ip_address"`
 }
 
 // Define other structs like Metadata, RouterBgp, AddressFamilyIpv4, etc., here.
