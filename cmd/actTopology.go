@@ -12,8 +12,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/apenella/go-ansible/v2/pkg/execute"
 	"github.com/apenella/go-ansible/v2/pkg/inventory"
@@ -239,7 +237,7 @@ func actTopology() {
 		}
 	}
 	config.AddPortsToNodes(interfaceMap)
-	config.AddLinksToNodes(linksMap)
+	// config.AddLinksToNodes(linksMap)
 
 	// Output to a file
 	yamlData, err = yaml.Marshal(&config)
@@ -357,24 +355,6 @@ func (c *ACTTopologyConfig) AddLinksToNodes(linksMap map[string][]string) {
 	}
 }
 
-// getYmlFiles returns a slice of all the .yml files in the given path
-func getYmlFiles(path string) ([]string, error) {
-	var files []string
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() && strings.HasSuffix(path, ".yml") {
-			files = append(files, path)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return files, nil
-}
-
 // NonNetworkInterfaces returns a list list of interfaces that are not connected to a network device
 func NonNetworkInterfaces(m *mo.Config, hostnames []string) []*mo.EthernetInterface {
 	var nonNetworkInterfaces []*mo.EthernetInterface
@@ -404,19 +384,19 @@ func NetworkInterfaces(m *mo.Config, hostnames []string) []*mo.EthernetInterface
 		[["node1:port1", "node1:port2"], ["node2:port1", "node3:port2"]]}
 		notice that the key value is also infront of the port
 */
-func CreateLinkMap(ethernets map[string][]*mo.EthernetInterface) [][]string {
-	linksMap := make(map[string][]string)
-	for _, interfaces := range ethernets {
-		for _, e := range interfaces {
-			// Add the port to the node
-			if _, ok := linksMap[e.Peer]; !ok {
-				linksMap[e.Peer] = []string{}
-			}
-			linksMap[e.Peer] = append(linksMap[e.Peer], fmt.Sprintf("%s:%s", e.Peer, e.Name))
-		}
-	}
-	return linksMap
-}
+// func CreateLinkMap(ethernets map[string][]*mo.EthernetInterface) [][]string {
+// 	linksMap := make(map[string][]string)
+// 	for _, interfaces := range ethernets {
+// 		for _, e := range interfaces {
+// 			// Add the port to the node
+// 			if _, ok := linksMap[e.Peer]; !ok {
+// 				linksMap[e.Peer] = []string{}
+// 			}
+// 			linksMap[e.Peer] = append(linksMap[e.Peer], fmt.Sprintf("%s:%s", e.Peer, e.Name))
+// 		}
+// 	}
+// 	return linksMap
+// }
 
 // contains checks if a string is in a slice of strings
 func contains(s []string, e string) bool {
