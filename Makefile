@@ -58,6 +58,11 @@ run/pbAccessInterface:
 run/parseOutput:
 	go run *.go parseOutput -k warning,error -f old5/test.txt
 
+## run/actTopology: run the actTopology CMD
+.PHONY: run/actTopology
+run/actTopology:
+	go run *.go actTopology
+
 
 # ==================================================================================== #
 # QUALITY CONTROL
