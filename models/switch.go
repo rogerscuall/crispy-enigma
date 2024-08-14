@@ -115,3 +115,20 @@ type VlanInterface struct {
 	Tenant           string `yaml:"tenant"`
 	Type             string `yaml:"type"`
 }
+
+type Connections struct {
+	Name  string `yaml:"name"`
+	Port1 string `yaml:"port1"`
+	Port2 string `yaml:"port2"`
+}
+
+// GetEthernetConnectionsToDevice returns a list of connections for a given device
+func (c *Config) GetEthernetConnectionsToDevice(device string) []EthernetInterface {
+	var connections []EthernetInterface
+	for _, e := range c.EthernetInterfaces {
+		if e.Peer == device {
+			connections = append(connections, e)
+		}
+	}
+	return connections
+}
