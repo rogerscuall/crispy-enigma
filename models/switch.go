@@ -132,3 +132,7 @@ func (c *Config) GetEthernetConnectionsToDevice(device string) []EthernetInterfa
 	}
 	return connections
 }
+
+func (c *Config) GetEthernetConnections() []EthernetInterface {
+	return c.EthernetInterfaces
+}
