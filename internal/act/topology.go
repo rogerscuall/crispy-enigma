@@ -62,13 +62,22 @@ func (c *TopologyConfig) AddIPToHosts(hostnames []string, firstIP string) {
 	}
 }
 
-func (c *TopologyConfig) AddPortsToNodes(interfaceMap map[string][]string) {
+func (c *TopologyConfig) AddPortsToNodes(network mo.Network) {
+	// for _, node := range c.Nodes {
+	// 	// avoid overwriting the ports if the node is not in the interfaceMap
+	// 	if _, ok := interfaceMap[node.Name]; !ok {
+	// 		continue
+	// 	}
+	// 	node.Ports = interfaceMap[node.Name]
+	// }
 	for _, node := range c.Nodes {
-		// avoid overwriting the ports if the node is not in the interfaceMap
-		if _, ok := interfaceMap[node.Name]; !ok {
-			continue
+		for _, config := range network.Configs {
+			if node.Name == config.Hostname {
+				for _, e := range config.EthernetInterfaces {
+					node.Ports = append(node.Ports, e.Name)
+				}
+			}
 		}
-		node.Ports = interfaceMap[node.Name]
 	}
 }
 
