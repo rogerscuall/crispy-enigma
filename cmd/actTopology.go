@@ -78,7 +78,6 @@ func actTopology(folder string) {
 	if debug {
 		fmt.Println("Hostnames:", hostnames)
 	}
-	networkConnections := network.CleanNetworkConnections()
 	// Load the YAML data from a file
 	yamlData, err := os.ReadFile("topology.yml")
 	if err != nil {
@@ -102,7 +101,7 @@ func actTopology(folder string) {
 	// networkInterfaces interfaces connected to other network devices in this fabric
 
 	actConfig.AddPortsToNodes(network)
-	actConfig.AddLinksToNodes(networkConnections)
+	actConfig.AddLinksToNodes(network)
 
 	// Output to a file
 	yamlData, err = yaml.Marshal(&actConfig)
