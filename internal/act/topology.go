@@ -39,7 +39,8 @@ func (a *TopologyConfig) AddNode(nodeName, ipAddr string) error {
 		linksMap should have this format:
 		{"node1": ["node2:port1", "node3:port2"], "node2": ["node1:port1"]}
 */
-func (c *TopologyConfig) AddLinksToNodes(networkConnections []mo.Connection) {
+func (c *TopologyConfig) AddLinksToNodes(network mo.Network) {
+	networkConnections := network.CleanNetworkConnections()
 	for _, connection := range networkConnections {
 		side1 := fmt.Sprint(connection.SideA, ":", connection.PortA)
 		side2 := fmt.Sprint(connection.SideB, ":", connection.PortB)
