@@ -161,8 +161,10 @@ nodes:
 links:
   - connection:
       - INTERNAL-TEST:Ethernet1
+      # Update this next line with the name of an existing switch and a port that is configured but not connected to another switch in this network
       - DC1-L2LEAF1A:Ethernet20
   - connection:
       - EXTERNAL-TEST:Ethernet1
+      # Update this next line with the name of an existing switch and a port that is configured but not connected to another switch in this network
       - DC1-L2LEAF1A:Ethernet21
 `
