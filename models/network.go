@@ -74,3 +74,38 @@ func containsConnection(connections []Connection, connection Connection) bool {
 	}
 	return false
 }
+
+// GetInNetworkConnections returns the connections that are inside the network
+// This are the connections that connect two devices in the network
+func (n Network) GetInNetworkConnections() []Connection {
+	hostnames := n.GetHostnames()
+	networkInterfaces := []Connection{}
+	for _, config := range n.Configs {
+		for _, e := range config.EthernetInterfaces {
+			for _, hostname := range hostnames {
+				if e.Peer == hostname {
+					connection := Connection{
+						SideA: config.Hostname,
+						SideB: e.Peer,
+						PortA: e.Name,
+						PortB: e.PeerInterface,
+					}
+					networkInterfaces = append(networkInterfaces, connection)
+				}
+			}
+		}
+	}
+	return networkInterfaces
+}
+
+
+func (n Network) CleanInNetworkConnections() []Connection {
+	connections := n.GetInNetworkConnections()
+	uniqueConnections := []Connection{}
+	for _, c := range connections {
+		if !containsConnection(uniqueConnections, c) {
+			uniqueConnections = append(uniqueConnections, c)
+		}
+	}
+	return uniqueConnections
+}
