@@ -149,9 +149,9 @@ third-party:
 
 nodes:
   - CVP:
-	  ip_addr: 192.168.0.5
-	  node_type: cvp
-	  auto_configuration: true
+      ip_addr: 192.168.0.5
+      node_type: cvp
+      auto_configuration: true
   - INTERNAL-TEST:
       ip_addr: 192.168.0.11
       node_type: veos
