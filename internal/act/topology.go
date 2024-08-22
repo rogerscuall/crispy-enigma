@@ -106,30 +106,3 @@ type DeviceDetails struct {
 }
 
 
-
-func (n Node) MarshalYAML() (interface{}, error) {
-	nodeDetails := map[string]interface{}{}
-
-	// Only add non-empty fields to the nodeDetails map
-	if n.IPAddr != "" {
-		nodeDetails["ip_addr"] = n.IPAddr
-	}
-	if n.NodeType != "" {
-		nodeDetails["node_type"] = n.NodeType
-	}
-	if n.AutoConfiguration {
-		nodeDetails["auto_configuration"] = n.AutoConfiguration
-	}
-	if len(n.Ports) > 0 {
-		nodeDetails["ports"] = n.Ports
-	}
-
-	// Return a map with the node name as the key, only if nodeDetails is not empty
-	if len(nodeDetails) > 0 {
-		return map[string]interface{}{
-			n.Name: nodeDetails,
-		}, nil
-	}
-
-	return nil, nil // Avoid including an empty map
-}

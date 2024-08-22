@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/rogerscuall/crispy-enigma/internal/act"
 	"github.com/rogerscuall/crispy-enigma/internal/ansible"
 
 	"github.com/spf13/cobra"
@@ -18,28 +19,12 @@ import (
 // actInventoryCmd represents the actInventory command
 var actInventoryCmd = &cobra.Command{
 	Use:   "actInventory",
-	Short: "Takes an Ansible AVD inventory and updates it with an ACT inventory",
+	Short: "Takes an Ansible AVD inventory and updates it with an ACT topology",
 	Long: `ACT has a specific management interface, we need our ACT devices to use that one.
 Most of the time it does not match the management interface in the Ansible AVD inventory.
-This script will update the Ansible AVD inventory with the ACT inventory, and remove other fields like:
+This script will update the Ansible AVD inventory with the ACT topology, and remove other fields like:
 - serial_number
-The act-inventory.yml should have a VEOS group with all the hosts listed after them like this example:
-...
-VEOS:
-      hosts:
-        ATL-ADM-BL201:
-          ansible_host: 10.255.83.101
-          ansible_user: cvpadmin
-          ansible_ssh_pass: cvp123!
-        ATL-ADM-BL202:
-          ansible_host: 10.255.3.117
-          ansible_user: cvpadmin
-          ansible_ssh_pass: cvp123!
-        ATL-ADM-LF203:
-          ansible_host: 10.255.29.188
-          ansible_user: cvpadmin
-          ansible_ssh_pass: cvp123!
-...`,
+To create an ACT topology use the command actTopology`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("actInventory called")
 		original := cmd.Flag("original").Value.String()
@@ -51,7 +36,7 @@ VEOS:
 
 func init() {
 	rootCmd.AddCommand(actInventoryCmd)
-	actInventoryCmd.Flags().StringP("act", "a", "act-inventory.yml", "ACT inventory file")
+	actInventoryCmd.Flags().StringP("act", "a", "act-topology.yml", "ACT topology file")
 	actInventoryCmd.Flags().StringP("original", "o", "inventory.yml", "Original inventory file")
 	actInventoryCmd.Flags().StringP("output", "O", "updated-inventory.yml", "Output file")
 }
@@ -60,27 +45,7 @@ func init() {
 inventoryUpdate updates the original inventory with the ACT inventory
 It will update the IP address of all the hosts in the original inventory with the IP address from the ACT inventory
 It will remove the serial_number field from all hosts
-The act-inventory.yml should have a VEOS group with all the hosts listed after them like this example:
-```yaml
-...
-VEOS:
-
-	hosts:
-	  ATL-ADM-BL201:
-	    ansible_host: 10.255.83.101
-	    ansible_user: cvpadmin
-	    ansible_ssh_pass: cvp123!
-	  ATL-ADM-BL202:
-	    ansible_host: 10.255.3.117
-	    ansible_user: cvpadmin
-	    ansible_ssh_pass: cvp123!
-	  ATL-ADM-LF203:
-	    ansible_host: 10.255.29.188
-	    ansible_user: cvpadmin
-	    ansible_ssh_pass: cvp123!
-
-...
-```
+To create an ACT topology use the command actTopology
 */
 func inventoryUpdate(originalInventory, actInventory, outputFile string) {
 	// Read the original inventory file
@@ -95,7 +60,8 @@ func inventoryUpdate(originalInventory, actInventory, outputFile string) {
 		log.Fatalf("Error reading act inventory: %v", err)
 	}
 
-	var original, act, newInventory ansible.Inventory
+	var original, newInventory ansible.Inventory
+	var act act.TopologyConfig
 
 	// Unmarshal both YAML files
 	err = yaml.Unmarshal(originalData, &original)
@@ -118,18 +84,9 @@ func inventoryUpdate(originalInventory, actInventory, outputFile string) {
 		log.Fatalf("Error unmarshaling to new inventory: %v", err)
 	}
 
-	// Create a map of hostnames to IP addresses from act inventory
 	actHosts := make(map[string]string)
-	if veos, ok := act.All.Children["VEOS"].(map[string]interface{}); ok {
-		if hosts, ok := veos["hosts"].(map[string]interface{}); ok {
-			for hostname, data := range hosts {
-				if hostData, ok := data.(map[string]interface{}); ok {
-					if ip, ok := hostData["ansible_host"].(string); ok {
-						actHosts[hostname] = ip
-					}
-				}
-			}
-		}
+	for _, node := range act.Nodes {
+		actHosts[node.Name] = node.IPAddr
 	}
 
 	// Update the new inventory

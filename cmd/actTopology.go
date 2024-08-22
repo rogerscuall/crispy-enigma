@@ -42,7 +42,8 @@ var actTopologyCmd = &cobra.Command{
 		}
 		fmt.Println("actTopology called")
 		folder := cmd.Flag("folder").Value.String()
-		actTopology(folder)
+		output := cmd.Flag("output").Value.String()
+		actTopology(folder, output)
 	},
 }
 
@@ -51,6 +52,7 @@ func init() {
 	// Prints an example input file
 	actTopologyCmd.Flags().StringP("folder", "f", "intended/structured_configs", "Folder with the structured configuration files")
 	actTopologyCmd.Flags().BoolP("example", "e", false, "Prints an example input file")
+	actTopologyCmd.Flags().StringP("output", "O", "act-topology.yml", "Output file")
 }
 
 var (
@@ -58,7 +60,7 @@ var (
 	debug = false
 )
 
-func actTopology(folder string) {
+func actTopology(folder, actTopology string) {
 	files, err := getYmlFiles(folder)
 	if err != nil {
 		fmt.Println(err)
@@ -109,7 +111,7 @@ func actTopology(folder string) {
 		log.Fatalf("error: %v", err)
 	}
 
-	err = os.WriteFile("topology-out.yml", yamlData, 0644)
+	err = os.WriteFile(actTopology, yamlData, 0644)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
