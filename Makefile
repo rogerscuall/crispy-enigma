@@ -73,6 +73,11 @@ run/parseOutput:
 run/actTopology:
 	go run *.go actTopology
 
+## run/actInventory: run the actInventory CMD
+.PHONY: run/actInventory
+run/actInventory:
+	go run *.go actInventory -o original-inventory.yml -a act-inventory.yml
+
 
 # ==================================================================================== #
 # QUALITY CONTROL
