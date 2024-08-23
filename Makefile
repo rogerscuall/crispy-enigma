@@ -58,6 +58,16 @@ run/pbAccessInterface:
 run/parseOutput:
 	go run *.go parseOutput -k warning,error -f old5/test.txt
 
+## run/actTopology: run the actTopology CMD
+.PHONY: run/actTopology
+run/actTopology:
+	go run *.go actTopology
+
+## run/actInventory: run the actInventory CMD
+.PHONY: run/actInventory
+run/actInventory:
+	go run *.go actInventory -o original-inventory.yml -a topology-out.yml
+
 
 # ==================================================================================== #
 # QUALITY CONTROL

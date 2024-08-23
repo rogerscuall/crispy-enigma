@@ -107,3 +107,7 @@ dist/
 old*
 running-config
 host_vars
+intended
+topology*.yml
+*inventory.yml
+*topology.yml

@@ -24,12 +24,11 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/rogerscuall/crispy-enigma/internal/vcs"
 	"github.com/spf13/cobra"
 )
 
 var (
-	version = vcs.Version()
+	version = "1.11.1"
 )
 
 // versionCmd represents the version command

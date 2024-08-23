@@ -43,7 +43,7 @@ type Config struct {
 	// IpNameServers                []IpNameServer         `yaml:"ip_name_servers"`
 	// SpanningTree                 SpanningTree           `yaml:"spanning_tree"`
 	// LocalUsers                   []LocalUser            `yaml:"local_users"`
-	// ManagementInterfaces         []ManagementInterface  `yaml:"management_interfaces"`
+	ManagementInterfaces []ManagementInterface `yaml:"management_interfaces"`
 	// ManagementApiHttp            ManagementApiHttp      `yaml:"management_api_http"`
 	VlanInterfaces []VlanInterface `yaml:"vlan_interfaces"`
 	// PortChannelInterfaces        []PortChannelInterface `yaml:"port_channel_interfaces"`
@@ -114,4 +114,35 @@ type VlanInterface struct {
 	NoAutostate      bool   `yaml:"no_autostate"`
 	Tenant           string `yaml:"tenant"`
 	Type             string `yaml:"type"`
+}
+
+type Connections struct {
+	Name  string `yaml:"name"`
+	Port1 string `yaml:"port1"`
+	Port2 string `yaml:"port2"`
+}
+
+// GetEthernetConnectionsToDevice returns a list of connections for a given device
+func (c *Config) GetEthernetConnectionsToDevice(device string) []EthernetInterface {
+	var connections []EthernetInterface
+	for _, e := range c.EthernetInterfaces {
+		if e.Peer == device {
+			connections = append(connections, e)
+		}
+	}
+	return connections
+}
+
+func (c *Config) GetEthernetConnections() []EthernetInterface {
+	return c.EthernetInterfaces
+}
+
+type ManagementInterface struct {
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
+	Shutdown    bool   `yaml:"shutdown"`
+	VRF         string `yaml:"vrf"`
+	IPAddress   string `yaml:"ip_address"`
+	Gateway     string `yaml:"gateway"`
+	Type        string `yaml:"type"`
 }
