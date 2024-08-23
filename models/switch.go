@@ -43,7 +43,7 @@ type Config struct {
 	// IpNameServers                []IpNameServer         `yaml:"ip_name_servers"`
 	// SpanningTree                 SpanningTree           `yaml:"spanning_tree"`
 	// LocalUsers                   []LocalUser            `yaml:"local_users"`
-	// ManagementInterfaces         []ManagementInterface  `yaml:"management_interfaces"`
+	ManagementInterfaces []ManagementInterface `yaml:"management_interfaces"`
 	// ManagementApiHttp            ManagementApiHttp      `yaml:"management_api_http"`
 	VlanInterfaces []VlanInterface `yaml:"vlan_interfaces"`
 	// PortChannelInterfaces        []PortChannelInterface `yaml:"port_channel_interfaces"`
@@ -135,4 +135,14 @@ func (c *Config) GetEthernetConnectionsToDevice(device string) []EthernetInterfa
 
 func (c *Config) GetEthernetConnections() []EthernetInterface {
 	return c.EthernetInterfaces
+}
+
+type ManagementInterface struct {
+	Name        string `yaml:"name"`
+	Description string `yaml:"description"`
+	Shutdown    bool   `yaml:"shutdown"`
+	VRF         string `yaml:"vrf"`
+	IPAddress   string `yaml:"ip_address"`
+	Gateway     string `yaml:"gateway"`
+	Type        string `yaml:"type"`
 }

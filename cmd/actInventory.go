@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 
 	"github.com/rogerscuall/crispy-enigma/internal/act"
 	"github.com/rogerscuall/crispy-enigma/internal/ansible"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 )
 
 // actInventoryCmd represents the actInventory command
@@ -29,7 +30,7 @@ To create an ACT topology use the command actTopology`,
 		fmt.Println("actInventory called")
 		original := cmd.Flag("original").Value.String()
 		act := cmd.Flag("act").Value.String()
-		outputFile := cmd.Flag("output").Value.String()
+		outputFile := cmd.Flag("update").Value.String()
 		inventoryUpdate(original, act, outputFile)
 	},
 }
@@ -38,7 +39,7 @@ func init() {
 	rootCmd.AddCommand(actInventoryCmd)
 	actInventoryCmd.Flags().StringP("act", "a", "act-topology.yml", "ACT topology file")
 	actInventoryCmd.Flags().StringP("original", "o", "inventory.yml", "Original inventory file")
-	actInventoryCmd.Flags().StringP("output", "O", "updated-inventory.yml", "Output file")
+	actInventoryCmd.Flags().StringP("update", "u", "updated-inventory.yml", "Output file")
 }
 
 /*
@@ -68,25 +69,25 @@ func inventoryUpdate(originalInventory, actInventory, outputFile string) {
 	if err != nil {
 		log.Fatalf("Error unmarshaling original inventory: %v", err)
 	}
-
+	
 	err = yaml.Unmarshal(actData, &act)
 	if err != nil {
 		log.Fatalf("Error unmarshaling act inventory: %v", err)
 	}
 
-	// Deep copy the original inventory to the new inventory
-	newInventoryData, err := yaml.Marshal(&original)
-	if err != nil {
-		log.Fatalf("Error marshaling original inventory: %v", err)
-	}
-	err = yaml.Unmarshal(newInventoryData, &newInventory)
-	if err != nil {
-		log.Fatalf("Error unmarshaling to new inventory: %v", err)
-	}
+	newInventory = original
+
+	fmt.Println("Children structure before update:")
+	printStructure(newInventory.All.Children, 0)
 
 	actHosts := make(map[string]string)
 	for _, node := range act.Nodes {
 		actHosts[node.Name] = node.IPAddr
+	}
+
+	for host, ip := range actHosts {
+		fmt.Println(host)
+		fmt.Println(ip)
 	}
 
 	// Update the new inventory
@@ -95,7 +96,7 @@ func inventoryUpdate(originalInventory, actInventory, outputFile string) {
 	// create a writer with a buffer
 
 	encoder := yaml.NewEncoder(&buf)
-	encoder.SetIndent(2)
+	// encoder.SetIndent(2)
 
 	// Marshal the updated inventory back to YAML
 	err = encoder.Encode(newInventory)
@@ -112,24 +113,91 @@ func inventoryUpdate(originalInventory, actInventory, outputFile string) {
 	fmt.Printf("Updated inventory written to %v.", outputFile)
 }
 
+// func updateInventory(children map[string]interface{}, actHosts map[string]string) {
+// 	fmt.Println("Updating inventory")
+// 	for _, child := range children {
+// 		switch v := child.(type) {
+// 		case map[string]interface{}:
+// 			fmt.Println(v)
+// 			if hosts, ok := v["hosts"].(map[string]interface{}); ok {
+// 				for hostname, hostData := range hosts {
+// 					if data, ok := hostData.(map[string]interface{}); ok {
+// 						// Update ansible_host if it exists in actHosts
+// 						if newIP, exists := actHosts[hostname]; exists {
+// 							data["ansible_host"] = newIP
+// 						}
+// 						// Remove serial_number field
+// 						delete(data, "serial_number")
+// 					}
+// 				}
+// 			}
+// 			// Recursively update nested children
+// 			updateInventory(v, actHosts)
+// 		}
+// 	}
+// }
+
 func updateInventory(children map[string]interface{}, actHosts map[string]string) {
-	for _, child := range children {
+	fmt.Println("Updating inventory")
+	fmt.Println("Children", children)
+	for childName, child := range children {
+		fmt.Println("childName", childName)
+		fmt.Printf("Processing child: %s, Type: %s\n", childName, reflect.TypeOf(child))
 		switch v := child.(type) {
-		case map[string]interface{}:
-			if hosts, ok := v["hosts"].(map[string]interface{}); ok {
+		case map[interface{}]interface{}:
+			if hosts, ok := v["hosts"].(map[interface{}]interface{}); ok {
+				fmt.Println("host1s", hosts)
 				for hostname, hostData := range hosts {
+					h := hostname.(string)
 					if data, ok := hostData.(map[string]interface{}); ok {
 						// Update ansible_host if it exists in actHosts
-						if newIP, exists := actHosts[hostname]; exists {
+						if newIP, exists := actHosts[h]; exists {
+							fmt.Printf("Updating %s: ansible_host -> %s\n", h, newIP)
 							data["ansible_host"] = newIP
 						}
 						// Remove serial_number field
-						delete(data, "serial_number")
+						if _, exists := data["serial_number"]; exists {
+							fmt.Printf("Removing serial_number from %s\n", h)
+							delete(data, "serial_number")
+						}
 					}
 				}
 			}
 			// Recursively update nested children
-			updateInventory(v, actHosts)
+			// updateInventory(v, actHosts)
+		default:
+			fmt.Printf("Skipping unrecognized type for %s\n", childName)
 		}
 	}
+}
+
+func printStructure(data interface{}, indent int) {
+	prefix := ""
+	for i := 0; i < indent; i++ {
+		prefix += "  "
+	}
+
+	switch v := data.(type) {
+	case map[string]interface{}:
+		for key, value := range v {
+			fmt.Printf("%s%s: %T\n", prefix, key, value)
+			printStructure(value, indent+1)
+		}
+	default:
+		fmt.Printf("%s%v\n", prefix, v)
+	}
+}
+
+func convertToStringKeys(original map[interface{}]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	for key, value := range original {
+		strKey := fmt.Sprintf("%v", key)
+		switch v := value.(type) {
+		case map[interface{}]interface{}:
+			result[strKey] = convertToStringKeys(v)
+		default:
+			result[strKey] = v
+		}
+	}
+	return result
 }
