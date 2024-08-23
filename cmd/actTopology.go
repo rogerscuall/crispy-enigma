@@ -97,7 +97,8 @@ func actTopology(folder, actTopology string) {
 		fmt.Printf("%+v\n", actConfig)
 	}
 	// Add a new node to the config with an unique IP address
-	actConfig.AddIPToHosts(hostnames, "192.168.0.20")
+	// actConfig.AddIPToHosts(hostnames, "192.168.0.20")
+	actConfig.AddNodes(network)
 
 	// Get all the ethernet interfaces from the structured configuration files
 	// networkInterfaces interfaces connected to other network devices in this fabric
@@ -116,6 +117,7 @@ func actTopology(folder, actTopology string) {
 		log.Fatalf("error: %v", err)
 	}
 
+	fmt.Println("ACT Topology data written to", actTopology)
 }
 
 // contains checks if a string is in a slice of strings
