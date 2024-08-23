@@ -3,6 +3,7 @@ package act
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/c-robinson/iplib"
 	mo "github.com/rogerscuall/crispy-enigma/models"
@@ -22,8 +23,8 @@ type Link struct {
 	Connection []string `yaml:"connection"`
 }
 
-// AddNode adds a new node to the TopologyConfig
-func (a *TopologyConfig) AddNode(nodeName, ipAddr string) error {
+// AddNodeWithNewIP adds a new node to the TopologyConfig
+func (a *TopologyConfig) AddNodeWithNewIP(nodeName, ipAddr string) error {
 	// Check if the node already exists
 	for _, n := range a.Nodes {
 		if n.Name == nodeName {
@@ -32,6 +33,19 @@ func (a *TopologyConfig) AddNode(nodeName, ipAddr string) error {
 	}
 	a.Nodes = append(a.Nodes, &Node{Name: nodeName, IPAddr: ipAddr, NodeType: "veos"})
 	return nil
+}
+
+func (a *TopologyConfig) AddNodes(network mo.Network) {
+	for _, config := range network.Configs {
+		ip := config.ManagementInterfaces[0].IPAddress
+		mgmtIP := strings.Split(ip, "/")
+		node := Node{
+			Name:     config.Hostname,
+			IPAddr:   mgmtIP[0],
+			NodeType: "veos",
+		}
+		a.Nodes = append(a.Nodes, &node)
+	}
 }
 
 /*
@@ -56,7 +70,7 @@ func (c *TopologyConfig) AddIPToHosts(hostnames []string, firstIP string) {
 	ipInit := net.ParseIP(firstIP)
 	ipNext := iplib.NextIP(ipInit)
 	for _, hostname := range hostnames {
-		if err := c.AddNode(hostname, ipNext.String()); err != nil {
+		if err := c.AddNodeWithNewIP(hostname, ipNext.String()); err != nil {
 			fmt.Println(err)
 		}
 		ipNext = iplib.NextIP(ipNext)
@@ -104,5 +118,3 @@ type DeviceDetails struct {
 	Username string `yaml:"username"`
 	Version  string `yaml:"version"`
 }
-
-
