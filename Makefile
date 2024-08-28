@@ -78,6 +78,12 @@ run/actTopology:
 run/actInventory:
 	go run *.go actInventory -o original-inventory.yml -a topology-out.yml
 
+## install: build and install the CLI locally
+.PHONY: install
+install:
+	@echo 'Building and installing the CLI...'
+	go build -o $(GOPATH)/bin/crispy-enigma
+	@echo 'Installation complete. You can now use "crispy-enigma" command.'
 
 # ==================================================================================== #
 # QUALITY CONTROL
