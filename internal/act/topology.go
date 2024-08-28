@@ -35,8 +35,11 @@ func (a *TopologyConfig) AddNodeWithNewIP(nodeName, ipAddr string) error {
 	return nil
 }
 
-func (a *TopologyConfig) AddNodes(network mo.Network) {
+func (a *TopologyConfig) AddNodes(network mo.Network) error {
 	for _, config := range network.Configs {
+		if len(config.ManagementInterfaces) == 0 {
+			return fmt.Errorf("no management interface found for node %s", config.Hostname)
+		}
 		ip := config.ManagementInterfaces[0].IPAddress
 		mgmtIP := strings.Split(ip, "/")
 		node := Node{
@@ -46,6 +49,7 @@ func (a *TopologyConfig) AddNodes(network mo.Network) {
 		}
 		a.Nodes = append(a.Nodes, &node)
 	}
+	return nil
 }
 
 /*

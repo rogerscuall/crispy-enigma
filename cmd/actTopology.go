@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/rogerscuall/crispy-enigma/internal/act"
 	mo "github.com/rogerscuall/crispy-enigma/models"
@@ -73,6 +74,11 @@ func actTopology(folder, inputActTopology, actTopology string) {
 	var network mo.Network
 	var networkConfigs []*mo.Config
 	for _, file := range files {
+		// Ignore files inside the "cvp" folder with a file name that begins with "cvp"
+		// This file belong to CVP and not to the network devices
+		if strings.Contains(file, "cvp/cvp") {
+			continue
+		}
 		fmt.Println("Working on file:", file)
 		c, err := mo.NewConfigFromYaml(file)
 		if err != nil {
@@ -103,7 +109,10 @@ func actTopology(folder, inputActTopology, actTopology string) {
 	}
 	// Add a new node to the config with an unique IP address
 	// actConfig.AddIPToHosts(hostnames, "192.168.0.20")
-	actConfig.AddNodes(network)
+	err = actConfig.AddNodes(network)
+	if err != nil {
+		cobra.CheckErr(err)
+	}
 	actConfig.AddPortsToNodes(network)
 	actConfig.AddLinksToNodes(network)
 
