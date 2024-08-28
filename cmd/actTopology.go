@@ -15,24 +15,27 @@ import (
 )
 
 /*
-1. Run the ansible-inventory command to get the inventory data. We dont need this anymore as we are reading from the structured configuration files.
-2. Parse the JSON data
-3. Extract the hostnames
-4. Load the ACT Topology YAML data from a file. This ACT Topology has some data that needs to be kept, we are just adding new nodes and links to it.
-5. Add the hostnames to the ACT Topology data.
-6. Parse the information from the structured configuration files.
-7. From the structured configuration data, parse the interface ethernet configuration as links struct.
-8. Identify what ports are available in the test environment, if the port does not connect to another switch is available to be used. (Done)
-8.5. The available ports should be added to the test node as links in the ACT Topology data.
-9. Add the links struct to the ACT Topology data for the "no available" ports. These are the ports that connect the switches.
-10. Output the ACT Topology data to a file
+- Parse the JSON data
+- Extract the hostnames
+- Load the ACT Topology YAML data from a file. This ACT Topology has some data that needs to be kept, we are just adding new nodes and links to it.
+- Add the hostnames to the ACT Topology data.
+- Parse the information from the structured configuration files.
+- From the structured configuration data, parse the interface ethernet configuration as links struct.
+- Identify what ports are available in the test environment, if the port does not connect to another switch is available to be used. (Done)
+- The available ports should be added to the test node as links in the ACT Topology data.
+- Add the links struct to the ACT Topology data for the "no available" ports. These are the ports that connect the switches.
+- Output the ACT Topology data to a file
 */
 
 // actTopologyCmd represents the actTopology command
 var actTopologyCmd = &cobra.Command{
 	Use:   "actTopology",
 	Short: "From AVD project creates an ACT topology",
-	Long:  `This command will create an ACT topology from and AVD project. It needs the intended configuration in structured format and add test nodes to the topology for data plane testing`,
+	Long: `This command will create an ACT topology from and AVD project
+It needs an input ACT topology (default: topology.yml) 
+and a folder with the structured configuration files (default: intended/structured_configs)
+It will output the ACT topology to a file (default: act-topology.yml)
+For an example input file run the command with the -e flag`,
 	Run: func(cmd *cobra.Command, args []string) {
 		example, _ := cmd.Flags().GetBool("example")
 		if example {
@@ -43,7 +46,8 @@ var actTopologyCmd = &cobra.Command{
 		fmt.Println("actTopology called")
 		folder := cmd.Flag("folder").Value.String()
 		output := cmd.Flag("output").Value.String()
-		actTopology(folder, output)
+		input := cmd.Flag("input").Value.String()
+		actTopology(folder, input, output)
 	},
 }
 
@@ -51,6 +55,7 @@ func init() {
 	rootCmd.AddCommand(actTopologyCmd)
 	// Prints an example input file
 	actTopologyCmd.Flags().StringP("folder", "f", "intended/structured_configs", "Folder with the structured configuration files")
+	actTopologyCmd.Flags().StringP("input", "i", "topology.yml", "ACT Topology file")
 	actTopologyCmd.Flags().BoolP("example", "e", false, "Prints an example input file")
 	actTopologyCmd.Flags().StringP("output", "O", "act-topology.yml", "Output file")
 }
@@ -60,7 +65,7 @@ var (
 	debug = false
 )
 
-func actTopology(folder, actTopology string) {
+func actTopology(folder, inputActTopology, actTopology string) {
 	files, err := getYmlFiles(folder)
 	if err != nil {
 		fmt.Println(err)
@@ -81,7 +86,7 @@ func actTopology(folder, actTopology string) {
 		fmt.Println("Hostnames:", hostnames)
 	}
 	// Load the YAML data from a file
-	yamlData, err := os.ReadFile("topology.yml")
+	yamlData, err := os.ReadFile(inputActTopology)
 	if err != nil {
 		log.Fatalf("error: %v", err)
 	}
