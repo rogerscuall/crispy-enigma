@@ -104,10 +104,6 @@ func actTopology(folder, inputActTopology, actTopology string) {
 	// Add a new node to the config with an unique IP address
 	// actConfig.AddIPToHosts(hostnames, "192.168.0.20")
 	actConfig.AddNodes(network)
-
-	// Get all the ethernet interfaces from the structured configuration files
-	// networkInterfaces interfaces connected to other network devices in this fabric
-
 	actConfig.AddPortsToNodes(network)
 	actConfig.AddLinksToNodes(network)
 
