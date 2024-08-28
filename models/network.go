@@ -27,7 +27,11 @@ type Connection struct {
 	PortB string `yaml:"port_b"`
 }
 
+/*
+GetNetworkConnections returns the connections that are inside the network
+*/
 func (n Network) GetNetworkConnections() []Connection {
+	//TODO: Seems like this function does the same as GetInNetworkConnections
 	hostnames := n.GetHostnames()
 	networkInterfaces := []Connection{}
 	for _, hostname := range hostnames {
@@ -49,30 +53,6 @@ func (n Network) GetNetworkConnections() []Connection {
 		}
 	}
 	return networkInterfaces
-}
-
-// CleanNetworkConnections guarantees that the connections are unique
-func (n Network) CleanNetworkConnections() []Connection {
-	connections := n.GetNetworkConnections()
-	uniqueConnections := []Connection{}
-	for _, c := range connections {
-		if !containsConnection(uniqueConnections, c) {
-			uniqueConnections = append(uniqueConnections, c)
-		}
-	}
-	return uniqueConnections
-}
-
-func containsConnection(connections []Connection, connection Connection) bool {
-	for _, c := range connections {
-		if c.SideA == connection.SideA && c.SideB == connection.SideB {
-			return true
-		}
-		if c.SideA == connection.SideB && c.SideB == connection.SideA {
-			return true
-		}
-	}
-	return false
 }
 
 // GetInNetworkConnections returns the connections that are inside the network
@@ -98,7 +78,21 @@ func (n Network) GetInNetworkConnections() []Connection {
 	return networkInterfaces
 }
 
+// CleanNetworkConnections guarantees that the connections are unique
+func (n Network) CleanNetworkConnections() []Connection {
+	connections := n.GetNetworkConnections()
+	uniqueConnections := []Connection{}
+	for _, c := range connections {
+		if !containsConnection(uniqueConnections, c) {
+			uniqueConnections = append(uniqueConnections, c)
+		}
+	}
+	return uniqueConnections
+}
 
+/*
+CleanInNetworkConnections guarantees that the connections are unique
+*/
 func (n Network) CleanInNetworkConnections() []Connection {
 	connections := n.GetInNetworkConnections()
 	uniqueConnections := []Connection{}
@@ -108,4 +102,16 @@ func (n Network) CleanInNetworkConnections() []Connection {
 		}
 	}
 	return uniqueConnections
+}
+
+func containsConnection(connections []Connection, connection Connection) bool {
+	for _, c := range connections {
+		if c.SideA == connection.SideA && c.SideB == connection.SideB {
+			return true
+		}
+		if c.SideA == connection.SideB && c.SideB == connection.SideA {
+			return true
+		}
+	}
+	return false
 }

@@ -49,9 +49,8 @@ func (a *TopologyConfig) AddNodes(network mo.Network) {
 }
 
 /*
-	 AddLinksToNodes adds links to the nodes in the ACTTopologyConfig
-		linksMap should have this format:
-		{"node1": ["node2:port1", "node3:port2"], "node2": ["node1:port1"]}
+AddLinksToNodes adds links to the nodes in the ACTTopologyConfig.
+Guarantees that the connections are unique, and terminates in another network device (InNetworkConnections).
 */
 func (c *TopologyConfig) AddLinksToNodes(network mo.Network) {
 	networkConnections := network.CleanInNetworkConnections()
@@ -77,6 +76,8 @@ func (c *TopologyConfig) AddIPToHosts(hostnames []string, firstIP string) {
 	}
 }
 
+// AddPortsToNodes adds the ports to the nodes in the ACTTopologyConfig
+// All interfaces configured in the network.Configs are added to the nodes regardless of state or type.
 func (c *TopologyConfig) AddPortsToNodes(network mo.Network) {
 	for _, node := range c.Nodes {
 		for _, config := range network.Configs {
