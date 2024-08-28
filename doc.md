@@ -1,0 +1,69 @@
+# ACT Topology Generator Documentation
+
+This document describes the workflow of the `actTopology` command implemented in `cmd/actTopology.go`.
+
+## Overview
+
+The `actTopology` command is designed to create an ACT (Arista Containerized Test) topology from an AVD (Arista Validated Designs) project. It takes structured configuration files and an existing ACT topology as input, and generates an updated ACT topology file as output.
+
+## Workflow
+
+1. **Parse Input**: 
+   - The command accepts the following flags:
+     - `-f, --folder`: Specifies the folder containing structured configuration files (default: "intended/structured_configs")
+     - `-i, --input`: Specifies the input ACT Topology file (default: "topology.yml")
+     - `-O, --output`: Specifies the output file for the generated ACT topology (default: "act-topology.yml")
+     - `-e, --example`: When set, prints an example input file and exits
+
+2. **Read Configuration Files**:
+   - Reads all YAML files from the specified folder
+   - Parses each file into a `Config` struct
+   - Adds each `Config` to a `Network` struct
+
+3. **Extract Hostnames**:
+   - Retrieves hostnames from all parsed configurations
+
+4. **Load Existing ACT Topology**:
+   - Reads the input ACT Topology file
+   - Unmarshals the YAML data into a `TopologyConfig` struct
+
+5. **Update ACT Topology**:
+   - Adds new nodes to the ACT topology based on the parsed configurations
+   - Adds ports to the nodes in the ACT topology
+   - Adds links between nodes based on the ethernet interface configurations
+
+6. **Generate Output**:
+   - Marshals the updated `TopologyConfig` back into YAML
+   - Writes the YAML data to the specified output file
+
+## Key Functions
+
+- `actTopology`: Main function that orchestrates the entire workflow
+- `getYmlFiles`: Retrieves all YAML files from a specified directory
+- `NewConfigFromYaml`: Parses a YAML file into a `Config` struct
+- `GetHostnames`: Extracts hostnames from a `Network` struct
+- `AddNodes`, `AddPortsToNodes`, `AddLinksToNodes`: Methods of `TopologyConfig` that update the ACT topology
+
+## Example Usage
+
+To run the command with default settings:
+
+```bash
+go run main.go actTopology
+```
+
+To specify custom input and output:
+
+```bash
+go run main.go actTopology -f path/to/configs -i input_topology.yml -O output_topology.yml
+```
+
+To print an example input file:
+
+```bash
+go run main.go actTopology -e
+```
+
+## Note
+
+This command assumes that the input ACT Topology file already contains some data that needs to be preserved. The command only adds new nodes and links to this existing topology.
