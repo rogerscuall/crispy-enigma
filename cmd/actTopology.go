@@ -162,6 +162,7 @@ third-party:
   version: infoblox
 
 nodes:
+# Update the IP addresses of the test nodes and CVP to be in the same subnet as the devices.
   - CVP:
       ip_addr: 192.168.0.5
       node_type: cvp
