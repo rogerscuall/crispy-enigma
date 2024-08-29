@@ -100,6 +100,10 @@ func (m NestedMatcher) IsEnd(line string) bool {
 	return m.ParentMatcher.IsEnd(line)
 }
 
+func NewNestedMatcher(parent BlockMatcher, keyword string) *NestedMatcher {
+	return &NestedMatcher{ParentMatcher: parent, Keyword: keyword}
+}
+
 // GenericProcessor processes the configuration based on matchers and updaters
 // It will apply the first matching matcher and updater
 type GenericProcessor struct {
@@ -164,11 +168,12 @@ func clean() {
 
 	// Define matchers and updaters
 	interfaceMatcher := NewGenericMatcher("interface Vlan2217")
+	interfaceMatcherMTU := NewGenericMatcher("interface")
 	daemonMatcher := NewGenericMatcher("daemon")
-	ipAddressMatcher := &NestedMatcher{ParentMatcher: interfaceMatcher, Keyword: "ip address"}
-	mtuMatcher := &NestedMatcher{ParentMatcher: interfaceMatcher, Keyword: "mtu"}
+	ipAddressMatcher := NewNestedMatcher(interfaceMatcher, "ip address")
+	mtuMatcher := NewNestedMatcher(interfaceMatcherMTU, "mtu")
 	singleLineMatcher := NewGenericMatcher("username")
-	singleLineMatcherMonitor := SingleLineMatcher{Keyword: "monitor session"}
+	singleLineMatcherMonitor := NewGenericMatcher("monitor")
 
 	// Define updaters
 	ipAddressUpdater := BlockUpdaterFunc(func(block []string) []string {
