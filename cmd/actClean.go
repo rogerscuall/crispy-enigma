@@ -25,16 +25,6 @@ This command will clean a production AVD designed configuration to be used with 
 
 func init() {
 	rootCmd.AddCommand(actCleanCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// actCleanCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// actCleanCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // BlockMatcher defines the interface for matching blocks
@@ -53,6 +43,7 @@ type GenericMatcher struct {
 	Keyword string
 }
 
+// NewGenericMatcher creates a new GenericMatcher with the given keyword
 func NewGenericMatcher(keyword string) GenericMatcher {
 	return GenericMatcher{Keyword: keyword}
 }
@@ -65,24 +56,13 @@ func (m GenericMatcher) IsEnd(line string) bool {
 	return strings.TrimSpace(line) == "!"
 }
 
-// SingleLineMatcher identifies single lines containing the Keyword
-type SingleLineMatcher struct {
-	Keyword string
-}
-
-func (m SingleLineMatcher) Match(line string) bool {
-	return strings.Contains(strings.TrimSpace(line), m.Keyword)
-}
-
-func (m SingleLineMatcher) IsEnd(line string) bool {
-	return true
-}
-
 // SingleLineUpdater modifies or removes a matched single line
 type SingleLineUpdater struct {
 	NewLine string // If NewLine is empty, the line will be removed
 }
 
+// UpdateBlock replaces the line with the new line
+// If NewLine is empty, the line will be removed
 func (u SingleLineUpdater) UpdateBlock(block []string) []string {
 	if u.NewLine == "" {
 		// If NewLine is empty, return an empty slice to remove the line
@@ -121,11 +101,16 @@ func (m NestedMatcher) IsEnd(line string) bool {
 }
 
 // GenericProcessor processes the configuration based on matchers and updaters
+// It will apply the first matching matcher and updater
 type GenericProcessor struct {
 	Matchers []BlockMatcher
 	Updaters []BlockUpdater
 }
 
+/*
+ProcessConfig processes the configuration line by line
+If a line matches a matcher, the updater will be applied once it reaches the end of the block
+*/
 func (p *GenericProcessor) ProcessConfig(config string) string {
 	var result strings.Builder
 	scanner := bufio.NewScanner(strings.NewReader(config))
@@ -136,24 +121,25 @@ func (p *GenericProcessor) ProcessConfig(config string) string {
 
 	for scanner.Scan() {
 		line := scanner.Text()
-
-		// If we're inside a block, collect lines
 		if inBlock {
+			//3. If the line is in a block, it is added to the current block but not to the result
 			currentBlock = append(currentBlock, line)
-
-			// If the block ends, apply the update and reset
 			if currentMatcher.IsEnd(line) {
+				//4. If the line is the end of the block, the updater is applied to the block
 				updatedBlock := currentUpdater.UpdateBlock(currentBlock)
+				//5. The updated block is added to the result
 				for _, updatedLine := range updatedBlock {
 					result.WriteString(updatedLine + "\n")
 				}
+				//6. The current block is reset
 				inBlock = false
 				currentBlock = nil
 				currentMatcher = nil
 				currentUpdater = nil
 			}
 		} else {
-			// Try to match a new block using available matchers
+			//2. Each line is checked against all the matchers to see if it is the beginning of a block
+			// TODO: Only the first matching matcher is applied. Add support for multiple matchers
 			for i, matcher := range p.Matchers {
 				if matcher.Match(line) {
 					inBlock = true
@@ -163,8 +149,7 @@ func (p *GenericProcessor) ProcessConfig(config string) string {
 					break
 				}
 			}
-
-			// If no block match, just append the line to the result
+			//1. Most of the time this line is used to append the line to the result for those lines that are not in the block
 			if !inBlock {
 				result.WriteString(line + "\n")
 			}
@@ -182,7 +167,7 @@ func clean() {
 	daemonMatcher := NewGenericMatcher("daemon")
 	ipAddressMatcher := &NestedMatcher{ParentMatcher: interfaceMatcher, Keyword: "ip address"}
 	mtuMatcher := &NestedMatcher{ParentMatcher: interfaceMatcher, Keyword: "mtu"}
-	singleLineMatcher := SingleLineMatcher{Keyword: "username"}
+	singleLineMatcher := NewGenericMatcher("username")
 	singleLineMatcherMonitor := SingleLineMatcher{Keyword: "monitor session"}
 
 	// Define updaters
