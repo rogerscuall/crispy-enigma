@@ -48,14 +48,20 @@ type BlockUpdater interface {
 	UpdateBlock(block []string) []string
 }
 
-// InterfaceMatcher matches blocks starting with the keyword "interface"
-type InterfaceMatcher struct{}
-
-func (m InterfaceMatcher) Match(line string) bool {
-	return strings.HasPrefix(strings.TrimSpace(line), "interface")
+type GenericMatcher struct {
+	// Keyword is the string that identifies the beginning of a block
+	Keyword string
 }
 
-func (m InterfaceMatcher) IsEnd(line string) bool {
+func NewGenericMatcher(keyword string) GenericMatcher {
+	return GenericMatcher{Keyword: keyword}
+}
+
+func (m GenericMatcher) Match(line string) bool {
+	return strings.HasPrefix(strings.TrimSpace(line), m.Keyword)
+}
+
+func (m GenericMatcher) IsEnd(line string) bool {
 	return strings.TrimSpace(line) == "!"
 }
 
@@ -86,7 +92,7 @@ func (u SingleLineUpdater) UpdateBlock(block []string) []string {
 	return []string{u.NewLine, "!"}
 }
 
-// NestedMatcher matches lines inside a block (e.g., "ip address" inside an interface block)
+// NestedMatcher matches lines inside a block (e.g., "ip address, mtu" inside an interface block)
 type NestedMatcher struct {
 	ParentMatcher BlockMatcher
 	Keyword       string
@@ -170,7 +176,53 @@ func (p *GenericProcessor) ProcessConfig(config string) string {
 
 func clean() {
 	// Example configuration string
-	var config = `
+
+	// Define matchers and updaters
+	interfaceMatcher := NewGenericMatcher("interface Vlan2217")
+	daemonMatcher := NewGenericMatcher("daemon")
+	ipAddressMatcher := &NestedMatcher{ParentMatcher: interfaceMatcher, Keyword: "ip address"}
+	mtuMatcher := &NestedMatcher{ParentMatcher: interfaceMatcher, Keyword: "mtu"}
+	singleLineMatcher := SingleLineMatcher{Keyword: "username"}
+	singleLineMatcherMonitor := SingleLineMatcher{Keyword: "monitor session"}
+
+	// Define updaters
+	ipAddressUpdater := BlockUpdaterFunc(func(block []string) []string {
+		block[0] = " ip address 10.0.0.1 255.255.255.0"
+		return block
+	})
+
+	mtuUpdater := BlockUpdaterFunc(func(block []string) []string {
+		for i, line := range block {
+			if strings.Contains(strings.TrimSpace(line), "mtu") {
+				block[i] = "   mtu 1500"
+			}
+		}
+		return block
+	})
+	singleLineUpdater := SingleLineUpdater{NewLine: "username admin secret 5 NEW\nusername cisco password 7 NEW"}
+	singleLineUpdaterMonitor := SingleLineUpdater{NewLine: ""}
+	daemoonUpdater := SingleLineUpdater{NewLine: daemonNew}
+
+	// Create the processor with matchers and updaters
+	processor := GenericProcessor{
+		Matchers: []BlockMatcher{mtuMatcher, singleLineMatcher, ipAddressMatcher, singleLineMatcherMonitor, daemonMatcher},
+		Updaters: []BlockUpdater{mtuUpdater, singleLineUpdater, ipAddressUpdater, singleLineUpdaterMonitor, daemoonUpdater},
+	}
+
+	// Process the configuration
+	updatedConfig := processor.ProcessConfig(config)
+	fmt.Println(updatedConfig)
+}
+
+// BlockUpdaterFunc is a helper to create BlockUpdater from a function
+type BlockUpdaterFunc func([]string) []string
+
+func (f BlockUpdaterFunc) UpdateBlock(block []string) []string {
+	return f(block)
+}
+
+var daemonNew = "daemon TerminAttr \n exec /usr/bin/TerminAttr -cvcompression=gzip -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -cvaddr=10.157.18.5:9910 -cvauth=token,/tmp/token -cvvrf=default -taillogs\n no shutdown\n!"
+var config = `
 !RANCID-CONTENT-TYPE: arista
 !
 daemon TerminAttr
@@ -1606,46 +1658,3 @@ end
 
 
 `
-
-	// Define matchers and updaters
-	interfaceMatcher := InterfaceMatcher{}
-	ipAddressMatcher := &NestedMatcher{ParentMatcher: interfaceMatcher, Keyword: "ip address"}
-	mtuMatcher := &NestedMatcher{ParentMatcher: interfaceMatcher, Keyword: "mtu"}
-	singleLineMatcher := SingleLineMatcher{Keyword: "username"}
-	singleLineMatcherMonitor := SingleLineMatcher{Keyword: "monitor session"}
-
-	// Define updaters
-	ipAddressUpdater := BlockUpdaterFunc(func(block []string) []string {
-		block[0] = " ip address 10.0.0.1 255.255.255.0"
-		return block
-	})
-
-	mtuUpdater := BlockUpdaterFunc(func(block []string) []string {
-		for i, line := range block {
-			if strings.Contains(strings.TrimSpace(line), "mtu") {
-				block[i] = "   mtu 1500"
-			}
-		}
-		return block
-	})
-	singleLineUpdater := SingleLineUpdater{NewLine: "username admin secret 5 NEW\nusername cisco password 7 NEW"}
-	singleLineUpdaterMonitor := SingleLineUpdater{NewLine: ""}
-
-	// Create the processor with matchers and updaters
-	processor := GenericProcessor{
-		Matchers: []BlockMatcher{mtuMatcher, singleLineMatcher, ipAddressMatcher, singleLineMatcherMonitor},
-		Updaters: []BlockUpdater{mtuUpdater, singleLineUpdater, ipAddressUpdater, singleLineUpdaterMonitor},
-	}
-
-	// Process the configuration
-	updatedConfig := processor.ProcessConfig(config)
-	fmt.Println(updatedConfig)
-}
-
-
-// BlockUpdaterFunc is a helper to create BlockUpdater from a function
-type BlockUpdaterFunc func([]string) []string
-
-func (f BlockUpdaterFunc) UpdateBlock(block []string) []string {
-	return f(block)
-}
