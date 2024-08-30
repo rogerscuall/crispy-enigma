@@ -167,19 +167,14 @@ func clean() {
 	// Example configuration string
 
 	// Define matchers and updaters
-	interfaceMatcher := NewGenericMatcher("interface Vlan2217")
 	interfaceMatcherMTU := NewGenericMatcher("interface")
 	daemonMatcher := NewGenericMatcher("daemon")
-	ipAddressMatcher := NewNestedMatcher(interfaceMatcher, "ip address")
 	mtuMatcher := NewNestedMatcher(interfaceMatcherMTU, "mtu")
 	singleLineMatcher := NewGenericMatcher("username")
 	singleLineMatcherMonitor := NewGenericMatcher("monitor")
+	singleLineMatcherAAA := NewGenericMatcher("aaa")
 
 	// Define updaters
-	ipAddressUpdater := BlockUpdaterFunc(func(block []string) []string {
-		block[0] = " ip address 10.0.0.1 255.255.255.0"
-		return block
-	})
 
 	mtuUpdater := BlockUpdaterFunc(func(block []string) []string {
 		for i, line := range block {
@@ -189,14 +184,15 @@ func clean() {
 		}
 		return block
 	})
-	singleLineUpdater := SingleLineUpdater{NewLine: "username admin secret 5 NEW\nusername cisco password 7 NEW"}
-	singleLineUpdaterMonitor := SingleLineUpdater{NewLine: ""}
-	daemoonUpdater := SingleLineUpdater{NewLine: daemonNew}
+
+	singleLineUpdater := SingleLineUpdater{NewLine: strings.Join(usernames, "\n")}
+	singleLineUpdaterRemover := SingleLineUpdater{NewLine: ""}
+	daemoonUpdater := SingleLineUpdater{NewLine: strings.Join(daemonNew, "\n")}
 
 	// Create the processor with matchers and updaters
 	processor := GenericProcessor{
-		Matchers: []BlockMatcher{mtuMatcher, singleLineMatcher, ipAddressMatcher, singleLineMatcherMonitor, daemonMatcher},
-		Updaters: []BlockUpdater{mtuUpdater, singleLineUpdater, ipAddressUpdater, singleLineUpdaterMonitor, daemoonUpdater},
+		Matchers: []BlockMatcher{mtuMatcher, singleLineMatcher, singleLineMatcherMonitor, daemonMatcher, singleLineMatcherAAA},
+		Updaters: []BlockUpdater{mtuUpdater, singleLineUpdater, singleLineUpdaterRemover, daemoonUpdater, singleLineUpdaterRemover},
 	}
 
 	// Process the configuration
@@ -211,7 +207,19 @@ func (f BlockUpdaterFunc) UpdateBlock(block []string) []string {
 	return f(block)
 }
 
-var daemonNew = "daemon TerminAttr \n exec /usr/bin/TerminAttr -cvcompression=gzip -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -cvaddr=10.157.18.5:9910 -cvauth=token,/tmp/token -cvvrf=default -taillogs\n no shutdown\n!"
+var usernames []string = []string{
+	"username arista privilege 15 role network-admin secret sha512 $6$ZGX/X07MoiWP9hvX$3UaAtOAiBGc54DYHdQt5dsr5P2HLydxjrda51Zw69tSsF4tahXPVj26PwOiZUy/xFRZL3CAkT7.lsOPqWfIbU0",
+	"username cvpadmin secret sha512 $6$vO.NVE0FD54oFstS$IyyRB7.D/30GF2jg89Ep9HcqTlmR0jx.gCoipN8cHbhK..U7qZ2dzDjcEg56cmb5L78jNPq6y3yviJkr48vCc0",
+	"username ec2-user shell /bin/bash nopassword",
+	"username ec2-user ssh-key ssh-rsa ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7zrvZRnQAErF4WL1z5HRDzbG2OGxCliQ2GvgmVOsO1fhlnvnzQkd2or/aMO58YK/ytBCraV7pm+zpdgzckkdOeJGCWBPps5V8MltIGaJvNM2Wp0FakjyLv7k+4p/rGPzbJ5gRd9sF1d+5dJ4WhuWd8d+182+snLZF+TapQD/jYRFnoacUDFLShZVvvVkMJpr9ENm5i+Rt1e1MqWTNHct47oKeAmQ9bkkX/EWS4dnDMRHxmb2IC+u2vUlfGeAGOI9LMMaDKZ67KpT9LyTk4H0hVQzKM16OO/IcnFafGG4EQSkxPRkDGESngELid1EhVKbK8pMkY7VJg6t5QW7Cf5bT20cl8aHzM/r9buFQ7k9Qfgq6Kr33kXOuxONiKQB2396oXNiuidynHXtqmK+hYwlvt+BqOJRvfaNdiCM//Aa6ZPSQ/mdJhb9brwQ5wY/ITxaQoHBDRrfIHHWw4s0l/tr2RBfEXg/5bSLf4DbUH7A7fvMWZ2Wl783q4mHFXqtmx/8= root@buildkitsandbox",
+	"username service shell /bin/bash secret sha512 $6$YIifMegwrRBSVaGk$31svzVjkGQwhAX4QPwtBUpN.WLKmFc7qDFNdCLguC7zaJ3Mn2oATcoIUKQAUm32YdQNTxYZc8091YaOI4yxa71",
+}
+var daemonNew []string = []string{
+	"daemon TerminAttr",
+	"    exec /usr/bin/TerminAttr -cvcompression=gzip -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -cvaddr=10.157.18.5:9910 -cvauth=token,/tmp/token -cvvrf=default -taillogs",
+	"    no shutdown",
+	"!"}
+
 var config = `
 !RANCID-CONTENT-TYPE: arista
 !
