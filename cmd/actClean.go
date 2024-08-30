@@ -25,6 +25,9 @@ This command will clean a production AVD designed configuration to be used with 
 
 func init() {
 	rootCmd.AddCommand(actCleanCmd)
+	//TODO: we need to ask for the CVP IP address,
+	//TODO: The IP of CVP is the one defined in the ACT topology, the port seems to be static in 9910, is the internal address not the public
+   //TODO: we need to ask for the CVP VRF, the default is MGMT
 }
 
 // BlockMatcher defines the interface for matching blocks
@@ -185,6 +188,9 @@ func clean() {
 		return block
 	})
 
+	daemonUpdate := fmt.Sprintf(dameonChange, "10.255.33.114:9910", "MGMT")
+	position := 1
+	daemonNew := append(daemonNew[:position], append([]string{daemonUpdate}, daemonNew[position:]...)...)
 	singleLineUpdater := SingleLineUpdater{NewLine: strings.Join(usernames, "\n")}
 	singleLineUpdaterRemover := SingleLineUpdater{NewLine: ""}
 	daemoonUpdater := SingleLineUpdater{NewLine: strings.Join(daemonNew, "\n")}
@@ -214,9 +220,10 @@ var usernames []string = []string{
 	"username ec2-user ssh-key ssh-rsa ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC7zrvZRnQAErF4WL1z5HRDzbG2OGxCliQ2GvgmVOsO1fhlnvnzQkd2or/aMO58YK/ytBCraV7pm+zpdgzckkdOeJGCWBPps5V8MltIGaJvNM2Wp0FakjyLv7k+4p/rGPzbJ5gRd9sF1d+5dJ4WhuWd8d+182+snLZF+TapQD/jYRFnoacUDFLShZVvvVkMJpr9ENm5i+Rt1e1MqWTNHct47oKeAmQ9bkkX/EWS4dnDMRHxmb2IC+u2vUlfGeAGOI9LMMaDKZ67KpT9LyTk4H0hVQzKM16OO/IcnFafGG4EQSkxPRkDGESngELid1EhVKbK8pMkY7VJg6t5QW7Cf5bT20cl8aHzM/r9buFQ7k9Qfgq6Kr33kXOuxONiKQB2396oXNiuidynHXtqmK+hYwlvt+BqOJRvfaNdiCM//Aa6ZPSQ/mdJhb9brwQ5wY/ITxaQoHBDRrfIHHWw4s0l/tr2RBfEXg/5bSLf4DbUH7A7fvMWZ2Wl783q4mHFXqtmx/8= root@buildkitsandbox",
 	"username service shell /bin/bash secret sha512 $6$YIifMegwrRBSVaGk$31svzVjkGQwhAX4QPwtBUpN.WLKmFc7qDFNdCLguC7zaJ3Mn2oATcoIUKQAUm32YdQNTxYZc8091YaOI4yxa71",
 }
+
+var dameonChange string = "    exec /usr/bin/TerminAttr -cvcompression=gzip -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -cvaddr=%s -cvauth=token,/tmp/token -cvvrf=%s -taillogs"
 var daemonNew []string = []string{
 	"daemon TerminAttr",
-	"    exec /usr/bin/TerminAttr -cvcompression=gzip -smashexcludes=ale,flexCounter,hardware,kni,pulse,strata -ingestexclude=/Sysdb/cell/1/agent,/Sysdb/cell/2/agent -cvaddr=10.157.18.5:9910 -cvauth=token,/tmp/token -cvvrf=default -taillogs",
 	"    no shutdown",
 	"!"}
 
