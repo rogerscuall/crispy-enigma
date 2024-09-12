@@ -36,13 +36,11 @@ import (
 // cvpPendingTaskCmd represents the cvpPendingTask command
 var cvpPendingTaskCmd = &cobra.Command{
 	Use:   "cvpPendingTask",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Check to see if any device on CVP has a pending task",
+	Long: `For every device in the current folder, check if there is a pending task in CVP.
+We will print a information of the device only if the WorkOrderUserDefinedStatus is "Pending"
+and the WorkOrderState is "ACTIVE"
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("cvpPendingTask called")
 		folder := cmd.Flag("folder").Value.String()
@@ -92,7 +90,7 @@ to quickly create a Cobra application.`,
 			log.Fatalf("ERROR: %s", err)
 		}
 		app.DebugLog("CVP Info: %v\n", info)
-		tasks, err := cvpClient.API.GetTasks("", 0, 0)
+		tasks, err := cvpClient.API.GetAllTasks()
 		if err != nil {
 			log.Fatalf("ERROR: %s", err)
 		}
@@ -103,7 +101,7 @@ to quickly create a Cobra application.`,
 			app.DebugLog("Task  User Status: %v\n", task.WorkOrderUserDefinedStatus)
 			app.DebugLog("Task Description: %v\n", task.Description)
 		}
-
+		var finalOutputClean = true
 		for _, file := range files {
 			app.DebugLog("File Name: %v\n", file)
 			deviceName := strings.TrimSuffix(path.Base(file), ".cfg")
@@ -121,10 +119,14 @@ to quickly create a Cobra application.`,
 			}
 			if clean {
 				log.Printf("The device %v is clean", deviceName)
+			} else {
+				finalOutputClean = false
 			}
 			clean = true
 		}
-
+		if !finalOutputClean {
+			log.Printf("Some devices have pending tasks")
+		}
 	},
 }
 
@@ -135,7 +137,6 @@ func init() {
 	cvpPassword = os.Getenv("CVP_PASSWORD")
 	cvpToken = os.Getenv("CVP_TOKEN")
 	fqdnSuffix = os.Getenv("FQDN_SUFFIX")
-
 	app = pkg.NewApplication()
 	cvpPendingTaskCmd.Flags().StringP("folder", "f", "", "Folder to store running-config files")
 	err := cvpPendingTaskCmd.MarkFlagRequired("folder")
