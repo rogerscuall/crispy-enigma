@@ -124,8 +124,11 @@ and the WorkOrderState is "ACTIVE"
 			}
 			clean = true
 		}
-		if !finalOutputClean {
-			log.Printf("Some devices have pending tasks")
+		if finalOutputClean {
+			log.Printf("No pending tasks for this network")
+		} else {
+			log.Printf("There are pending tasks for this network")
+			
 		}
 	},
 }
