@@ -118,6 +118,7 @@ The following variables can be set as environment variables or in a .env file.
 			if fqdnSuffix != "" {
 				deviceName = deviceName + "." + fqdnSuffix
 			}
+			log.Printf("Checking device: %v\n", deviceName)
 			dev, err := cvpClient.API.GetDeviceByName(deviceName)
 			if err != nil {
 				log.Printf("Device %v not found in CVP", deviceName)
@@ -155,7 +156,7 @@ The following variables can be set as environment variables or in a .env file.
 			}
 			app.DebugLog("Number of Configlets: %v\n", len(config))
 			for _, configlet := range config {
-				app.DebugLog("Configlet Name: %v\n", configlet.Name)
+				log.Printf("Configlet Name: %v\n", configlet.Name)
 				if err != nil {
 					log.Printf("Error reading file: %v\n", err)
 					inSync = false
