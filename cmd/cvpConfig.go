@@ -123,7 +123,7 @@ The AVD configlet is named <FABRIC_NAME>_<DEVICE_NAME>.
 			if fqdnSuffix != "" {
 				deviceName = deviceName + "." + fqdnSuffix
 			}
-			log.Printf("Checking device: %v\n", deviceName)
+			log.Printf("Working on device: %v\n", deviceName)
 			dev, err := cvpClient.API.GetDeviceByName(deviceName)
 			if err != nil {
 				log.Printf("Device %v not found in CVP", deviceName)
@@ -161,13 +161,13 @@ The AVD configlet is named <FABRIC_NAME>_<DEVICE_NAME>.
 			}
 			app.DebugLog("Number of Configlets: %v\n", len(config))
 			for _, configlet := range config {
-				log.Printf("Configlet Name: %v\n", configlet.Name)
+				app.DebugLog("Configlet Name: %v\n", configlet.Name)
 				/* A single device in CVP can be associated with multiple configlets.
 				Because this is used in tandem with AVD, only a single configlet matters.
 				This configlet is named <FABRIC_NAME>_<DEVICE_NAME>, by default we only use that configlet.
 				*/
 				if !strings.HasSuffix(configlet.Name, "_"+deviceName) && !checkConfiglets {
-					log.Printf("Skipping configlet %v, as it is not AVD configlet", configlet.Name)
+					app.DebugLog("Skipping configlet %v, as it is not AVD configlet", configlet.Name)
 					continue
 				}
 				if err != nil {
@@ -180,7 +180,7 @@ The AVD configlet is named <FABRIC_NAME>_<DEVICE_NAME>.
 				if diff != "" {
 					totalDiff[deviceName] = diff
 				} else {
-					fmt.Printf("Device %v config is in sync\n", deviceName)
+					log.Printf("Device %v config is in sync\n", deviceName)
 				}
 				// create a file with the running config
 				fileName := fmt.Sprintf("running-config/%v.cfg", deviceName)
