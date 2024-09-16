@@ -167,7 +167,7 @@ The AVD configlet is named <FABRIC_NAME>_<DEVICE_NAME>.
 				This configlet is named <FABRIC_NAME>_<DEVICE_NAME>, by default we only use that configlet.
 				*/
 				if !strings.HasSuffix(configlet.Name, "_"+deviceName) && !checkConfiglets {
-					log.Printf("Skipping configlet %v, does not have .cfg suffix", configlet.Name)
+					log.Printf("Skipping configlet %v, as it is not AVD configlet", configlet.Name)
 					continue
 				}
 				if err != nil {
