@@ -61,7 +61,7 @@ The following variables can be set as environment variables or in a .env file.
 		fmt.Println("cvpConfig called")
 		folder := cmd.Flag("folder").Value.String()
 		log.Print("Folder:", folder)
-		debug, _ := cmd.Flags().GetBool("debug")
+		debug, _ := cmd.Flags().GetBool("verbose")
 		if debug {
 			log.Print("Debug mode enabled")
 			app.Debug = true
