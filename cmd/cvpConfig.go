@@ -46,7 +46,7 @@ var (
 var cvpConfigCmd = &cobra.Command{
 	Use:   "cvpConfig",
 	Short: "Download running-config from CVP and compares with intended config",
-	Long: `For every device in the folder will check for the configlets in CVP
+	Long: `For every device in the folder will check for the AVD configlets in CVP
 if found it will compare with the intended config and show the differences. Useful
 to check at the pipeline level if a the build will update CVP. If token is set, it will
 take precedence over username and password. If CVP_URL is not set, it will use CVAAS.
@@ -56,15 +56,20 @@ The following variables can be set as environment variables or in a .env file.
 - CVP_TOKEN: CVP Token takes precedence over username and password
 - FQDN_SUFFIX: FQDN Suffix to append to the device name
 - CVP_URL: CVP URL if not set it will use CVAAS
+The AVD configlet is named <FABRIC_NAME>_<DEVICE_NAME>.
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("cvpConfig called")
 		folder := cmd.Flag("folder").Value.String()
 		log.Print("Folder:", folder)
-		debug, _ := cmd.Flags().GetBool("debug")
+		debug, _ := cmd.Flags().GetBool("verbose")
 		if debug {
 			log.Print("Debug mode enabled")
 			app.Debug = true
+		}
+		checkConfiglets, _ := cmd.Flags().GetBool("check-all-configlets")
+		if checkConfiglets {
+			log.Print("Checking all configlets")
 		}
 		files, err := getConfigFiles(folder)
 		if err != nil {
@@ -118,6 +123,7 @@ The following variables can be set as environment variables or in a .env file.
 			if fqdnSuffix != "" {
 				deviceName = deviceName + "." + fqdnSuffix
 			}
+			log.Printf("Working on device: %v\n", deviceName)
 			dev, err := cvpClient.API.GetDeviceByName(deviceName)
 			if err != nil {
 				log.Printf("Device %v not found in CVP", deviceName)
@@ -156,6 +162,14 @@ The following variables can be set as environment variables or in a .env file.
 			app.DebugLog("Number of Configlets: %v\n", len(config))
 			for _, configlet := range config {
 				app.DebugLog("Configlet Name: %v\n", configlet.Name)
+				/* A single device in CVP can be associated with multiple configlets.
+				Because this is used in tandem with AVD, only a single configlet matters.
+				This configlet is named <FABRIC_NAME>_<DEVICE_NAME>, by default we only use that configlet.
+				*/
+				if !strings.HasSuffix(configlet.Name, "_"+deviceName) && !checkConfiglets {
+					app.DebugLog("Skipping configlet %v, as it is not AVD configlet", configlet.Name)
+					continue
+				}
 				if err != nil {
 					log.Printf("Error reading file: %v\n", err)
 					inSync = false
@@ -166,7 +180,7 @@ The following variables can be set as environment variables or in a .env file.
 				if diff != "" {
 					totalDiff[deviceName] = diff
 				} else {
-					fmt.Printf("Device %v config is in sync\n", deviceName)
+					log.Printf("Device %v config is in sync\n", deviceName)
 				}
 				// create a file with the running config
 				fileName := fmt.Sprintf("running-config/%v.cfg", deviceName)
@@ -195,6 +209,7 @@ func init() {
 	fqdnSuffix = os.Getenv("FQDN_SUFFIX")
 	app = pkg.NewApplication()
 	cvpConfigCmd.Flags().StringP("folder", "f", "", "Folder where the structured config YAML files are located")
+	cvpConfigCmd.Flags().BoolP("check-all-configlets", "c", false, "Check all configlets instead of the AVD configlet")
 	err := cvpConfigCmd.MarkFlagRequired("folder")
 	if err != nil {
 		log.Fatalf("Error: %v", err)
