@@ -43,6 +43,11 @@ run/host/interface:
 run/cvp/config:
 	go run *.go cvpConfig -f old4
 
+## run/cvp/config/check-all: run the cmd/api application
+.PHONY: run/cvp/config/check-all
+run/cvp/config/check-all:
+	go run *.go cvpConfig -f old4 -c
+
 ## run/cvp/config/debug: run the cmd/api application
 .PHONY: run/cvp/config/debug
 run/cvp/config/debug:
