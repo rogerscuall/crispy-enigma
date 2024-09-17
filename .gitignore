@@ -107,6 +107,14 @@ dist/
 old*
 running-config
 host_vars
+<<<<<<< HEAD
 .aider.*
 *.yml
 *.cfg
+=======
+intended
+topology*.yml
+*inventory.yml
+*topology.yml
+.aider*
+>>>>>>> 297a967 (Refactor actTopologyCmd to use input ACT topology file and structured configuration folder. Adding a documentation of acttopology.)
