@@ -53,6 +53,11 @@ run/cvp/config/check-all:
 run/cvp/config/debug:
 	go run *.go cvpConfig -f old4 -v
 
+## run/config/compareDevice: run the cmd/api application
+.PHONY: run/config/compareDevice
+run/config/compareDevice:
+	go run *.go config compareDevice -f old4
+
 ## run/cvp/pending/tasks/debug: run the cmd/api application
 .PHONY: run/cvp/pending/tasks/debug
 run/cvp/pending/tasks/debug:
