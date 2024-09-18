@@ -41,7 +41,11 @@ import (
 This command should be similar to cvpConfig but instead of checking for AVD configlets,
  it checks again the last known running-config in CVP with: cvpClient.API.GetInventoryConfiguration(dev.SystemMacAddress).
 The idea is to compare the AVD config with the last known running config from device that exist in CVP.
-the **problem** is that the AVD config and the device config are sometimes the same but in different order.
+the are 2 **problems**:
+ * the AVD config and the device config are sometimes the same but in different order.
+ * the device config does not show the defaults and the AVD config does.
+	* device config: server x.x.x.x
+	* AVD config: server x.x.x.x vrf default
 TODO: Order both configurations before comparing them.
 Once order is applied the position is lost and we will only provide a yes or no answer.
 */
