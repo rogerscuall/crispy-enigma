@@ -37,7 +37,7 @@ import (
 	"gopkg.in/aristanetworks/go-cvprac.v2/client"
 )
 
-/*WARNME: This is a possibility but hard to implement.
+/*LISTEN: This is a possibility but hard to implement.
 This command should be similar to cvpConfig but instead of checking for AVD configlets,
  it checks again the last known running-config in CVP with: cvpClient.API.GetInventoryConfiguration(dev.SystemMacAddress).
 The idea is to compare the AVD config with the last known running config from device that exist in CVP.
