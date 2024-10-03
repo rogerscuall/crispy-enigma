@@ -55,15 +55,35 @@ func normalizeLine(line string) string {
 	return strings.TrimSpace(line)
 }
 
+import (
+	"fmt"
+	"regexp"
+	"sort"
+	"strings"
+)
+
 func compareLines(running, designed []string) bool {
 	if len(running) != len(designed) {
+		fmt.Printf("Length mismatch: running has %d lines, designed has %d lines\n", len(running), len(designed))
 		return false
 	}
 	for i := range running {
 		if running[i] != designed[i] {
+			fmt.Printf("Difference at line %d:\nRunning:  %s\nDesigned: %s\n", i+1, running[i], designed[i])
 			return false
 		}
 	}
 	return true
+}
+
+// CompareNetworkConfigs compares two network configurations and returns true if they are functionally equivalent.
+func CompareNetworkConfigs(running, designed string) bool {
+	runningLines := processConfig(running)
+	designedLines := processConfig(designed)
+
+	fmt.Printf("Processed running config has %d lines\n", len(runningLines))
+	fmt.Printf("Processed designed config has %d lines\n", len(designedLines))
+
+	return compareLines(runningLines, designedLines)
 }
 
