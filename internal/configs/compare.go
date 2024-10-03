@@ -31,7 +31,7 @@ func processConfig(config string) []string {
 }
 
 func shouldIncludeLine(line string) bool {
-	if line == "" || line == "!" {
+	if line == "" || strings.HasPrefix(line, "!") {
 		return false
 	}
 	excludePatterns := []string{
