@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"fmt"
 	"regexp"
 	"sort"
 	"strings"
@@ -11,6 +12,8 @@ func CompareNetworkConfigs(running, designed string) bool {
 	runningLines := processConfig(running)
 	designedLines := processConfig(designed)
 
+	fmt.Println("Processed running config has", len(runningLines), "lines")
+	fmt.Println("Processed designed config has", len(designedLines), "lines")
 	return compareLines(runningLines, designedLines)
 }
 
@@ -48,19 +51,12 @@ func shouldIncludeLine(line string) bool {
 func normalizeLine(line string) string {
 	// Remove trailing comments
 	line = regexp.MustCompile(`\s*!.*$`).ReplaceAllString(line, "")
-	
+
 	// Normalize spaces
 	line = regexp.MustCompile(`\s+`).ReplaceAllString(line, " ")
-	
+
 	return strings.TrimSpace(line)
 }
-
-import (
-	"fmt"
-	"regexp"
-	"sort"
-	"strings"
-)
 
 func compareLines(running, designed []string) bool {
 	if len(running) != len(designed) {
@@ -76,14 +72,13 @@ func compareLines(running, designed []string) bool {
 	return true
 }
 
-// CompareNetworkConfigs compares two network configurations and returns true if they are functionally equivalent.
-func CompareNetworkConfigs(running, designed string) bool {
-	runningLines := processConfig(running)
-	designedLines := processConfig(designed)
+// // CompareNetworkConfigs compares two network configurations and returns true if they are functionally equivalent.
+// func CompareNetworkConfigs(running, designed string) bool {
+// 	runningLines := processConfig(running)
+// 	designedLines := processConfig(designed)
 
-	fmt.Printf("Processed running config has %d lines\n", len(runningLines))
-	fmt.Printf("Processed designed config has %d lines\n", len(designedLines))
+// 	fmt.Printf("Processed running config has %d lines\n", len(runningLines))
+// 	fmt.Printf("Processed designed config has %d lines\n", len(designedLines))
 
-	return compareLines(runningLines, designedLines)
-}
-
+// 	return compareLines(runningLines, designedLines)
+// }
