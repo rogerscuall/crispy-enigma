@@ -1,35 +1,69 @@
 package configs
 
 import (
+	"regexp"
 	"sort"
 	"strings"
 )
 
-// CompareNetworkConfigs compares two network configurations and returns true if they are the same.
-// This function ignores whitespace and order differences.
+// CompareNetworkConfigs compares two network configurations and returns true if they are functionally equivalent.
 func CompareNetworkConfigs(running, designed string) bool {
-	// Split the configurations into lines
-	runningLines := strings.Split(running, "\n")
-	designedLines := strings.Split(designed, "\n")
+	runningLines := processConfig(running)
+	designedLines := processConfig(designed)
 
-	// Trim whitespace and remove empty lines
-	runningLines = cleanAndSort(runningLines)
-	designedLines = cleanAndSort(designedLines)
-
-	// Compare the sorted and cleaned lines
-	return strings.Join(runningLines, "\n") == strings.Join(designedLines, "\n")
+	return compareLines(runningLines, designedLines)
 }
 
-// cleanAndSort trims whitespace, removes empty lines, and sorts the resulting slice
-func cleanAndSort(lines []string) []string {
+func processConfig(config string) []string {
+	lines := strings.Split(config, "\n")
 	var result []string
 	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed != "" {
-			result = append(result, trimmed)
+		line = strings.TrimSpace(line)
+		if shouldIncludeLine(line) {
+			result = append(result, normalizeLine(line))
 		}
 	}
 	sort.Strings(result)
 	return result
+}
+
+func shouldIncludeLine(line string) bool {
+	if line == "" || line == "!" {
+		return false
+	}
+	excludePatterns := []string{
+		`^username .* secret `,
+		`^ *exec /usr/bin/TerminAttr `,
+		`^ip route vrf MGMT`,
+		`^ntp server vrf MGMT`,
+	}
+	for _, pattern := range excludePatterns {
+		if matched, _ := regexp.MatchString(pattern, line); matched {
+			return false
+		}
+	}
+	return true
+}
+
+func normalizeLine(line string) string {
+	// Remove trailing comments
+	line = regexp.MustCompile(`\s*!.*$`).ReplaceAllString(line, "")
+	
+	// Normalize spaces
+	line = regexp.MustCompile(`\s+`).ReplaceAllString(line, " ")
+	
+	return strings.TrimSpace(line)
+}
+
+func compareLines(running, designed []string) bool {
+	if len(running) != len(designed) {
+		return false
+	}
+	for i := range running {
+		if running[i] != designed[i] {
+			return false
+		}
+	}
+	return true
 }
 
