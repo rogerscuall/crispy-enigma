@@ -110,3 +110,4 @@ host_vars
 .aider.*
 *.yml
 *.cfg
+.aider*

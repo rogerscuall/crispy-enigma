@@ -29,9 +29,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/hexops/gotextdiff"
-	"github.com/hexops/gotextdiff/myers"
-	"github.com/hexops/gotextdiff/span"
 	"github.com/rogerscuall/crispy-enigma/pkg"
 	"github.com/spf13/cobra"
 	"gopkg.in/aristanetworks/go-cvprac.v2/client"
@@ -67,7 +64,6 @@ The following variables can be set as environment variables or in a .env file.
 The AVD configlet is named <FABRIC_NAME>_<DEVICE_NAME>.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("compareDevice called")
-		fmt.Println("cvpConfig called")
 		folder := cmd.Flag("folder").Value.String()
 		log.Print("Folder:", folder)
 		debug, _ := cmd.Flags().GetBool("verbose")
@@ -123,6 +119,7 @@ The AVD configlet is named <FABRIC_NAME>_<DEVICE_NAME>.`,
 		if err != nil {
 			log.Printf("Error creating running-config directory: %v", err)
 		}
+
 		var inSync = true
 		totalDiff := make(map[string]string)
 		for _, file := range files {
@@ -155,11 +152,11 @@ The AVD configlet is named <FABRIC_NAME>_<DEVICE_NAME>.`,
 				continue
 			}
 
-			if deviceName == "ATL-ADM-MT01" {
+			if deviceName == "dc1-leaf2bx" {
 				fmt.Println("Device Configuration conf:", deviceConfig.Output)
 			}
 
-			config := deviceConfig.Output
+			// config := deviceConfig.Output
 
 			f, err := os.Open(file)
 			if err != nil {
@@ -175,13 +172,13 @@ The AVD configlet is named <FABRIC_NAME>_<DEVICE_NAME>.`,
 				continue
 			}
 
-			edits := myers.ComputeEdits(span.URIFromPath(file), config, string(newConfig))
-			diff := fmt.Sprint(gotextdiff.ToUnified("running-config", "designed-config", config, edits))
-			if diff != "" {
-				totalDiff[deviceName] = diff
-			} else {
-				log.Printf("Device %v config is in sync\n", deviceName)
-			}
+			// edits := myers.ComputeEdits(span.URIFromPath(file), config, string(newConfig))
+			// diff := fmt.Sprint(gotextdiff.ToUnified("running-config", "designed-config", config, edits))
+			// if diff != "" {
+			// 	totalDiff[deviceName] = diff
+			// } else {
+			// 	log.Printf("Device %v config is in sync\n", deviceName)
+			// }
 			// create a file with the running config
 			fileName := fmt.Sprintf("running-config/%v.cfg", deviceName)
 			err = os.WriteFile(fileName, newConfig, 0644)
