@@ -11,7 +11,7 @@ require (
 	github.com/hexops/gotextdiff v1.0.3
 	github.com/infobloxopen/infoblox-go-client/v2 v2.5.0
 	github.com/netbox-community/go-netbox/v3 v3.7.1-alpha.0
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/tmc/langchaingo v0.1.4
 	golang.org/x/sync v0.6.0
