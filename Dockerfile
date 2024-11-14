@@ -1,8 +1,3 @@
-# From alpine lates load the binary in dist folder
-FROM alpine:latest
-COPY dist/crispy-enigma_linux_386/crispy-enigma /crispy-enigma
-CMD sh
-
 # Start from the official Go image.
 FROM golang:1.22 AS builder
 
