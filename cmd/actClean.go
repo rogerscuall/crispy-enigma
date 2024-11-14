@@ -39,6 +39,7 @@ var actCleanCmd = &cobra.Command{
 	Use:   "actClean",
 	Short: "Cleans a production AVD designed configuration to be used with ACT",
 	Long: `Arista Cloud Test (ACT) is runs in virtualized devices, that do not support all the physical devices features.
+Also we might now want to expose sensitive information like passwords or other secrets to ACT.
 This command will clean a production AVD designed configuration to be used with ACT.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("actClean called")
