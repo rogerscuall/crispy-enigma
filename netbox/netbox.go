@@ -10,7 +10,7 @@ import (
 	"github.com/rogerscuall/crispy-enigma/pkg"
 )
 
-var status = "active"
+// var status = "active"
 var pageLimit = int32(100)
 
 type Manufacturers struct {
@@ -116,11 +116,11 @@ func findSite(nb *n.APIClient, slug string) (fnd bool, id int32, err error) {
 	return fnd, id, nil
 }
 
-func check(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
+// func check(err error) {
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
 
 func findDevice(nb *n.APIClient, name string) (fnd bool, err error) {
 	rsp, _, err := nb.DcimAPI.DcimDevicesList(context.Background()).Name([]string{name}).Limit(pageLimit).Execute()

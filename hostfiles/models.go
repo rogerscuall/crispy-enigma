@@ -14,7 +14,7 @@ type Interface struct {
 	Name        string `yaml:"name"`
 	Description string `yaml:"description,omitempty"`
 	Shutdown    bool   `yaml:"shutdown"`
-	VLAN        int `yaml:"vlan,omitempty"`
+	VLAN        int    `yaml:"vlan,omitempty"`
 }
 
 func NewInterfaces(initial, end int) []Interface {

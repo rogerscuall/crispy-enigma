@@ -7,8 +7,6 @@ import (
 	ibclient "github.com/infobloxopen/infoblox-go-client/v2"
 )
 
-
-
 func CreateConnector(url, wapi, username, password string) (*ibclient.Connector, error) {
 	transportConfig := ibclient.NewTransportConfig("false", 20, 10)
 	transportConfig.SslVerify = false

@@ -13,4 +13,3 @@ type InterfaceList struct {
 	CollectionList
 	Items []Interface `json:"items"`
 }
-
