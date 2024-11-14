@@ -28,6 +28,6 @@ jobs:
         context: .
         push: true
         tags: |
-            rogerscuall/gotalk:latest
-            rogerscuall/gotalk:${{ github.ref_name }}
-            rogerscuall/gotalk:${{ github.sha }}
+            rogerscuall/crispy-enigma:latest
+            rogerscuall/crispy-enigma:${{ github.ref_name }}
+            rogerscuall/crispy-enigma:${{ github.sha }}
