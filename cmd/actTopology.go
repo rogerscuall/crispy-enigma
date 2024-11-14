@@ -148,15 +148,15 @@ func actTopology(folder, inputActTopology, actTopology string) {
 	fmt.Println("ACT Topology data written to", actTopology)
 }
 
-// contains checks if a string is in a slice of strings
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
+// // contains checks if a string is in a slice of strings
+// func contains(s []string, e string) bool {
+// 	for _, a := range s {
+// 		if a == e {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 var actExampleConfig = `
 veos:

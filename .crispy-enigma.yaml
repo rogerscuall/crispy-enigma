@@ -8,3 +8,7 @@ host_keys:
   - host: cvp
     key: ansible_password
     newvalue: cvp123!
+act_cvp:
+  - host: 10.255.33.114
+    port: 9910
+    vrf: MGMT

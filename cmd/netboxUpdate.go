@@ -35,12 +35,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 // netboxUpdateCmd represents the netboxUpdate command
 var netboxUpdateCmd = &cobra.Command{
 	Use:   "netboxUpdate",
 	Short: "Update Netbox with the devices in the folder",
-	Long: `Using the AVD structured config and some additional information update Netbox to reflect the devices and their configuration`,
+	Long:  `Using the AVD structured config and some additional information update Netbox to reflect the devices and their configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("netboxUpdate called")
 		folder := cmd.Flag("folder").Value.String()
@@ -73,7 +72,7 @@ var netboxUpdateCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(netboxUpdateCmd)
 	netboxURL = os.Getenv("NETBOX_URL")
-	netboxToken = os.Getenv("NETBOX_TOKEN")
+	// netboxToken = os.Getenv("NETBOX_TOKEN")
 	netboxUsername = os.Getenv("NETBOX_USERNAME")
 	netboxPassword = os.Getenv("NETBOX_PASSWORD")
 	app = pkg.NewApplication()

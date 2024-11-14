@@ -36,17 +36,17 @@ var (
 	//netboxURL      string
 	netboxUsername string
 	netboxPassword string
-	netboxToken    string
-	netboxURL      string
-	app            *pkg.Application
-	cvpURL         string
-	cvpUsername    string
-	cvpPassword    string
-	cvpToken       string
-	pbURL          string
-	pbUsername     string
-	pbPassword     string
-	verbose        bool
+	// netboxToken    string
+	netboxURL   string
+	app         *pkg.Application
+	cvpURL      string
+	cvpUsername string
+	cvpPassword string
+	cvpToken    string
+	pbURL       string
+	pbUsername  string
+	pbPassword  string
+	verbose     bool
 )
 
 // rootCmd represents the base command when called without any subcommands

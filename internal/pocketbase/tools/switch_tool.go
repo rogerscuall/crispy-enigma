@@ -47,5 +47,3 @@ func (st *SwitchTool) Call(ctx context.Context, input string) (string, error) {
 	}
 	return response, nil
 }
-
-

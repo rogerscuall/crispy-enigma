@@ -48,5 +48,3 @@ func (c *Client) GetInterfacesFromSwitchName(name string) ([]models.Interface, e
 	}
 	return interfaces.Items, nil
 }
-
-

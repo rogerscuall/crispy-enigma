@@ -128,7 +128,7 @@ and the WorkOrderState is "ACTIVE"
 			log.Printf("No pending tasks for this network")
 		} else {
 			log.Printf("There are pending tasks for this network")
-			
+
 		}
 	},
 }
