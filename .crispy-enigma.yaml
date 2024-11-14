@@ -1,0 +1,10 @@
+host_keys:
+  - host: cvp
+    key: ansible_host
+    newvalue: "10-255-31-17.some.act.arista.com"
+  - host: cvp
+    key: ansible_user
+    newvalue: admin
+  - host: cvp
+    key: ansible_password
+    newvalue: cvp123!
