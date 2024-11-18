@@ -14,7 +14,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/tmc/langchaingo v0.1.4
-	golang.org/x/sync v0.6.0
+	golang.org/x/sync v0.9.0
 	gopkg.in/aristanetworks/go-cvprac.v2 v2.7.0
 	gopkg.in/yaml.v2 v2.4.0
 )
