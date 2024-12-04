@@ -26,6 +26,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/rogerscuall/crispy-enigma/internal/act"
 	"github.com/spf13/cobra"
@@ -44,9 +45,14 @@ This command will clean a production AVD designed configuration to be used with 
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("actClean called")
 		folder := cmd.Flag("folder").Value.String()
-		outputFile := cmd.Flag("update").Value.String()
-		if outputFile != "" {
-			outputFile = folder
+		outputFolder := cmd.Flag("update").Value.String()
+		fullOutputFolder := filepath.Join(outputFolder, folder)
+		fmt.Println("Folder: ", fullOutputFolder)
+		if _, err := os.Stat(fullOutputFolder); os.IsNotExist(err) {
+			err := os.MkdirAll(fullOutputFolder, os.ModePerm)
+			if err != nil {
+				log.Fatalf("Error creating output folder: %v", err)
+			}
 		}
 		if err := viper.UnmarshalKey("act_cvp", &actCVP); err != nil {
 			fmt.Println("Error unmarshaling provider: " + err.Error())
@@ -55,7 +61,7 @@ This command will clean a production AVD designed configuration to be used with 
 			cobra.CheckErr("Only one configuration for CVP is supported")
 		}
 
-		log.Print("Folder:", folder)
+		log.Print("Folder: ", folder)
 		files, err := getConfigFiles(folder)
 		if err != nil {
 			log.Fatalf("Error reading folder: %v", err)
@@ -73,6 +79,8 @@ This command will clean a production AVD designed configuration to be used with 
 			config := string(content)
 			cvpHost := actCVP[0].Host + ":" + actCVP[0].Port
 			updatedConfig := act.CleanConfig(config, cvpHost, actCVP[0].VRF)
+			fileName := filepath.Base(file)
+			outputFile := filepath.Join(fullOutputFolder, fileName)
 			err = os.WriteFile(outputFile, []byte(updatedConfig), 0644)
 			if err != nil {
 				cobra.CheckErr(err)
@@ -84,5 +92,5 @@ This command will clean a production AVD designed configuration to be used with 
 func init() {
 	rootCmd.AddCommand(actCleanCmd)
 	actCleanCmd.Flags().StringP("folder", "f", "intended/configs", "Folder where the running config files are located")
-	actCleanCmd.Flags().StringP("update", "u", "", "Updated configuration for ACT")
+	actCleanCmd.Flags().StringP("update", "u", "updated", "Updated configuration for ACT")
 }
