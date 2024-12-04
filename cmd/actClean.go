@@ -47,7 +47,6 @@ This command will clean a production AVD designed configuration to be used with 
 		folder := cmd.Flag("folder").Value.String()
 		outputFolder := cmd.Flag("update").Value.String()
 		fullOutputFolder := filepath.Join(outputFolder, folder)
-		fmt.Println("Folder: ", fullOutputFolder)
 		if _, err := os.Stat(fullOutputFolder); os.IsNotExist(err) {
 			err := os.MkdirAll(fullOutputFolder, os.ModePerm)
 			if err != nil {
@@ -86,6 +85,7 @@ This command will clean a production AVD designed configuration to be used with 
 				cobra.CheckErr(err)
 			}
 		}
+		log.Println("Configuration files cleaned saved to:", fullOutputFolder)
 	},
 }
 
