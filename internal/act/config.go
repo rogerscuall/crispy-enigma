@@ -178,7 +178,7 @@ func CleanConfig(config, cvpHost, vrf string) string {
 	singleLineMatcherMonitor := NewGenericMatcher("monitor")
 	singleLineMatcherAAA := NewGenericMatcher("aaa")
 	singleLineSNMP := NewGenericMatcher("snmp-server")
-	singleLineQueueMonitorLenght := NewGenericMatcher("queue-monitor lenght")
+	singleLineQueueMonitorLenght := NewGenericMatcher("queue-monitor length")
 
 	// Define updaters
 
