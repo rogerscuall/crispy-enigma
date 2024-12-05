@@ -171,6 +171,8 @@ func CleanConfig(config, cvpHost, vrf string) string {
 	// Define matchers and updaters
 	interfaceMatcherMTU := NewGenericMatcher("interface")
 	daemonMatcher := NewGenericMatcher("daemon")
+	//Match the block queue-monitor streaming "qms"
+	qmsMatcher := NewGenericMatcher("queue-monitor streaming")
 	mtuMatcher := NewNestedMatcher(interfaceMatcherMTU, "mtu")
 	singleLineMatcher := NewGenericMatcher("username")
 	singleLineMatcherMonitor := NewGenericMatcher("monitor")
@@ -194,12 +196,13 @@ func CleanConfig(config, cvpHost, vrf string) string {
 	daemonNew := append(daemonNew[:position], append([]string{daemonUpdate}, daemonNew[position:]...)...)
 	singleLineUpdater := SingleLineUpdater{NewLine: strings.Join(usernames, "\n")}
 	singleLineUpdaterRemover := SingleLineUpdater{NewLine: ""}
-	daemoonUpdater := SingleLineUpdater{NewLine: strings.Join(daemonNew, "\n")}
+	daemonUpdater := SingleLineUpdater{NewLine: strings.Join(daemonNew, "\n")}
+	qmsUpdated := SingleLineUpdater{NewLine: "!"}
 
 	// Create the processor with matchers and updaters
 	processor := GenericProcessor{
-		Matchers: []BlockMatcher{mtuMatcher, singleLineMatcher, singleLineMatcherMonitor, daemonMatcher, singleLineMatcherAAA, singleLineSNMP, singleLineQueueMonitorLenght},
-		Updaters: []BlockUpdater{mtuUpdater, singleLineUpdater, singleLineUpdaterRemover, daemoonUpdater, singleLineUpdaterRemover, singleLineUpdaterRemover, singleLineUpdaterRemover},
+		Matchers: []BlockMatcher{mtuMatcher, singleLineMatcher, singleLineMatcherMonitor, daemonMatcher, singleLineMatcherAAA, singleLineSNMP, singleLineQueueMonitorLenght, qmsMatcher},
+		Updaters: []BlockUpdater{mtuUpdater, singleLineUpdater, singleLineUpdaterRemover, daemonUpdater, singleLineUpdaterRemover, singleLineUpdaterRemover, singleLineUpdaterRemover, qmsUpdated},
 	}
 
 	// Process the configuration
