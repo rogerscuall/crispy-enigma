@@ -27,3 +27,4 @@ The following changes are performed:
 - remove span monitor ports configuration as it is not supported by ACT.
 - removes AAA configuration to use local authentication.
 - removes SNMP configurations.
+- removes queue-monitor streaming and length
