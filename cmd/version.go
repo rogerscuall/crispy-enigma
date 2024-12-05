@@ -28,7 +28,7 @@ import (
 )
 
 var (
-	version = "1.13.3"
+	version = "1.13.4"
 )
 
 // versionCmd represents the version command
