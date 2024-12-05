@@ -175,6 +175,8 @@ func CleanConfig(config, cvpHost, vrf string) string {
 	singleLineMatcher := NewGenericMatcher("username")
 	singleLineMatcherMonitor := NewGenericMatcher("monitor")
 	singleLineMatcherAAA := NewGenericMatcher("aaa")
+	singleLineSNMP := NewGenericMatcher("snmp-server")
+	singleLineQueueMonitorLenght := NewGenericMatcher("queue-monitor lenght")
 
 	// Define updaters
 
@@ -196,8 +198,8 @@ func CleanConfig(config, cvpHost, vrf string) string {
 
 	// Create the processor with matchers and updaters
 	processor := GenericProcessor{
-		Matchers: []BlockMatcher{mtuMatcher, singleLineMatcher, singleLineMatcherMonitor, daemonMatcher, singleLineMatcherAAA},
-		Updaters: []BlockUpdater{mtuUpdater, singleLineUpdater, singleLineUpdaterRemover, daemoonUpdater, singleLineUpdaterRemover},
+		Matchers: []BlockMatcher{mtuMatcher, singleLineMatcher, singleLineMatcherMonitor, daemonMatcher, singleLineMatcherAAA, singleLineSNMP, singleLineQueueMonitorLenght},
+		Updaters: []BlockUpdater{mtuUpdater, singleLineUpdater, singleLineUpdaterRemover, daemoonUpdater, singleLineUpdaterRemover, singleLineUpdaterRemover, singleLineUpdaterRemover},
 	}
 
 	// Process the configuration
