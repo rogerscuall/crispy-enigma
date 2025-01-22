@@ -27,6 +27,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/awalterschulze/gographviz"
 	"github.com/rogerscuall/crispy-enigma/internal/act"
 	mo "github.com/rogerscuall/crispy-enigma/models"
 	"github.com/spf13/cobra"
@@ -104,7 +105,7 @@ func createDiagram(folder, inputActTopology, outputDiagram string) {
 	if verbose {
 		fmt.Printf("%+v\n", actConfig)
 	}
-	
+
 	err = actConfig.AddNodes(network)
 	if err != nil {
 		cobra.CheckErr(err)
@@ -112,6 +113,35 @@ func createDiagram(folder, inputActTopology, outputDiagram string) {
 	actConfig.AddPortsToNodes(network)
 	actConfig.AddLinksToNodes(network)
 
-	// TODO: Implement diagram creation logic using actConfig
-	fmt.Printf("Creating diagram from folder: %s, input: %s, output: %s\n", folder, inputActTopology, outputDiagram)
+	// Create the diagram
+	graph := gographviz.NewGraph()
+	if err := graph.SetName("G"); err != nil {
+		log.Fatalf("Error setting graph name: %v", err)
+	}
+	if err := graph.SetDir(true); err != nil {
+		log.Fatalf("Error setting graph to directed: %v", err)
+	}
+
+	// Add nodes to the graph
+	for _, node := range actConfig.Nodes {
+		attrs := make(map[string]string)
+		attrs["label"] = fmt.Sprintf("<%s<BR/>%s>", node.Name, node.NodeType)
+		attrs["shape"] = "box"
+		if err := graph.AddNode("G", node.Name, attrs); err != nil {
+			log.Fatalf("Error adding node %s: %v", node.Name, err)
+		}
+	}
+
+	// Generate the DOT representation
+	dotOutput := graph.String()
+
+	f, err := os.Create(outputDiagram)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	_, err = f.WriteString(dotOutput)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

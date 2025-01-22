@@ -119,3 +119,4 @@ intended
 *-fabric
 *.old
 local
+*.dot
