@@ -23,9 +23,14 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"strings"
 
+	"github.com/rogerscuall/crispy-enigma/internal/act"
+	mo "github.com/rogerscuall/crispy-enigma/models"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 // diagramCmd represents the diagram command
@@ -59,6 +64,54 @@ func init() {
 }
 
 func createDiagram(folder, inputActTopology, outputDiagram string) {
-	// TODO: Implement diagram creation logic
+	files, err := getYmlFiles(folder)
+	if err != nil {
+		fmt.Println(err)
+	}
+	var network mo.Network
+	var networkConfigs []*mo.Config
+	for _, file := range files {
+		// Ignore files inside the "cvp" folder with a file name that begins with "cvp"
+		// This file belong to CVP and not to the network devices
+		if strings.Contains(file, "cvp/cvp") {
+			continue
+		}
+		fmt.Println("Working on file:", file)
+		c, err := mo.NewConfigFromYaml(file)
+		if err != nil {
+			cobra.CheckErr(err)
+		}
+		networkConfigs = append(networkConfigs, c)
+	}
+	network.Configs = networkConfigs
+	hostnames := network.GetHostnames()
+	if debug {
+		fmt.Println("Hostnames:", hostnames)
+	}
+	// Load the YAML data from a file
+	yamlData, err := os.ReadFile(inputActTopology)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	var actConfig act.TopologyConfig
+	err = yaml.Unmarshal([]byte(yamlData), &actConfig)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+
+	// Print the unmarshalled data
+	if verbose {
+		fmt.Printf("%+v\n", actConfig)
+	}
+	
+	err = actConfig.AddNodes(network)
+	if err != nil {
+		cobra.CheckErr(err)
+	}
+	actConfig.AddPortsToNodes(network)
+	actConfig.AddLinksToNodes(network)
+
+	// TODO: Implement diagram creation logic using actConfig
 	fmt.Printf("Creating diagram from folder: %s, input: %s, output: %s\n", folder, inputActTopology, outputDiagram)
 }
