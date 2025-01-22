@@ -6,6 +6,7 @@ toolchain go1.23.3
 
 require (
 	github.com/awalterschulze/gographviz v2.0.3+incompatible
+	github.com/blushft/go-diagrams v0.0.0-20201006005127-c78c821223d9
 	github.com/c-robinson/iplib v1.0.8
 	github.com/duke-git/lancet/v2 v2.2.9
 	github.com/go-resty/resty/v2 v2.11.0
