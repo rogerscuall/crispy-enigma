@@ -61,7 +61,7 @@ func init() {
 	diagramCmd.Flags().StringP("folder", "f", "intended/structured_configs", "Folder with the structured configuration files")
 	diagramCmd.Flags().StringP("input", "i", "topology.yml", "ACT Topology file")
 	diagramCmd.Flags().BoolP("example", "e", false, "Prints an example input file")
-	diagramCmd.Flags().StringP("output", "O", "network-diagram.png", "Output diagram file")
+	diagramCmd.Flags().StringP("output", "O", "network-diagram.dot", "Output diagram file")
 }
 
 func createDiagram(folder, inputActTopology, outputDiagram string) {
@@ -127,8 +127,9 @@ func createDiagram(folder, inputActTopology, outputDiagram string) {
 		attrs := make(map[string]string)
 		attrs["label"] = fmt.Sprintf("<%s<BR/>%s>", node.Name, node.NodeType)
 		attrs["shape"] = "box"
-		if err := graph.AddNode("G", node.Name, attrs); err != nil {
-			log.Fatalf("Error adding node %s: %v", node.Name, err)
+		nodeName := strings.ReplaceAll(node.Name, "-", "_")
+		if err := graph.AddNode("G", nodeName, attrs); err != nil {
+			log.Fatalf("Error adding node %s: %v", nodeName, err)
 		}
 	}
 
