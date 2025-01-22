@@ -34,6 +34,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+
 // diagramCmd represents the diagram command
 var diagramCmd = &cobra.Command{
 	Use:   "diagram",
@@ -121,6 +122,9 @@ func createDiagram(folder, inputActTopology, outputDiagram string) {
 	if err := graph.SetDir(true); err != nil {
 		log.Fatalf("Error setting graph to directed: %v", err)
 	}
+
+	//TODO: need to work on how to organize the position of the diagram.
+	//TODO: > the spines should be at the top while the leaf should be at the bottom
 
 	// Add nodes to the graph
 	for _, node := range actConfig.Nodes {
