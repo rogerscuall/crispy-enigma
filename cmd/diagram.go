@@ -133,6 +133,28 @@ func createDiagram(folder, inputActTopology, outputDiagram string) {
 		}
 	}
 
+	// Add connections between nodes
+	for _, link := range actConfig.Links {
+		if len(link.Connection) != 2 {
+			log.Printf("Invalid connection: %v", link.Connection)
+			continue
+		}
+		source := strings.Split(link.Connection[0], ":")
+		destination := strings.Split(link.Connection[1], ":")
+		if len(source) != 2 || len(destination) != 2 {
+			log.Printf("Invalid connection format: %v", link.Connection)
+			continue
+		}
+		sourceNode := strings.ReplaceAll(source[0], "-", "_")
+		destNode := strings.ReplaceAll(destination[0], "-", "_")
+		fmt.Println(sourceNode, destNode)
+		attrs := make(map[string]string)
+		attrs["label"] = fmt.Sprintf("%s%s", source[1], destination[1])
+		if err := graph.AddEdge(sourceNode, destNode, true, attrs); err != nil {
+			log.Printf("Error adding edge %s -> %s: %v", sourceNode, destNode, err)
+		}
+	}
+
 	// Generate the DOT representation
 	dotOutput := graph.String()
 
